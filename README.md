@@ -1,4 +1,5 @@
 # LOCALIZAZ.js
+[![Build Status](https://travis-ci.com/ArTDsL/LocaliZAZ.js.svg?branch=master)](https://travis-ci.com/ArTDsL/LocaliZAZ.js)
 ### O localizaz é um script feito totalmente em JavaScript, o qual permite o programador adquirir Estados, Cidades, Número do IBGE. Futuramente será possível adquirir Códigos Postais, IATA, dentre outros.
 ```O uso do projeto é livre, peço somente que coloquem os créditos!```
 
