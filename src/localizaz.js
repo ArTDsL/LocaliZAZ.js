@@ -1,4 +1,4 @@
-﻿/*
+/*
 	LOCALIZAZ - J.S
 	
 	O Script localizaz é um script feito em J.S para buscar estados,
