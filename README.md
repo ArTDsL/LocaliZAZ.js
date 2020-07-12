@@ -18,7 +18,8 @@ Diria que a implementação é a mais simples possível, basta abrir o script e 
 ```
 var estado = document.getElementById('estado_input');
 var cidade = document.getElementById('cidade_input');
-var clp = document.getElementById('clp_input');
+var ibge_estado = document.getElementById('ibge_estado_input');
+var ibge_cidade = document.getElementById('ibge_cidade_input');
 ```
 
 Caso tenha gostado do projeto e quer me ajudar a manter o mesmo faça uma donate no paypal! Ajuda bastante ^-^.
