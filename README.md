@@ -2,7 +2,7 @@
 ### O localizaz é um script feito totalmente em JavaScript, o qual permite o programador adquirir Estados, Cidades, Número do IBGE. Futuramente será possível adquirir Códigos Postais, IATA, dentre outros.
 ```O uso do projeto é livre, peço somente que coloquem os créditos!```
 
-Testado o mesmo roda em navegadores **IE 8+**, verifique a compatibilidade do seu navegador executando o arquivo de teste, caso queira dar um feedback ficaria muito grato ♥!
+Testado o mesmo roda em navegadores **IE 8+**, verifique a compatibilidade do seu navegador executando o arquivo de teste, caso queira dar um feedback ficarei muito grato ♥!
 
 
 ## Funcionalidades:
