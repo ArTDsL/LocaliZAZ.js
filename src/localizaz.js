@@ -2,9 +2,14 @@
 	LOCALIZAZ - J.S
 	
 	O Script localizaz é um script feito em J.S para buscar estados,
-	cidades e códigos numericos para ambos segundo o IBGE.
+	cidades, códigos numericos para ambos segundo o IBGE e Códigos
+	de Aeroportos (IATA).
 	
-	Versão :: 1.0.0.0
+	**
+	19/01/2021 - Adicionado Códigos IATA.
+	**
+
+	Versão :: 1.9.0.1
 	Dados do IBGE :: 06/2020
 	
 	Desenvolvido por: Arthur "ArT_DsL" Dias dos Santos Lasso
@@ -15,6 +20,7 @@ const estado_box = "estado_sb";
 const cidade_box = "cidade_sb";
 const ibge_estado_inp = "ibge_estado_input";
 const ibge_cidade_inp = "ibge_cidade_input";
+const iata_aeroportos = "iata_input";
 //------- CARREGA -----
 window.onload = function(){
 	if(document.getElementById(estado_box) && document.getElementById(cidade_box)){
@@ -25,9 +31,9 @@ window.onload = function(){
 		//cidades
 		document.getElementById(cidade_box).innerHTML += ('<option value="' + cidades[0][1] + '">' + cidades[0][0] + '</option>');
 		//log
-		console.log('[JS] LocaliZaZ - v1.0.0.0 :: STATUS [CARREGADO]');
+		console.log('[JS] LocaliZaZ - v1.9.0.1 :: STATUS [CARREGADO]');
 	}else{
-		console.error('[JS] LocaliZaZ - v1.0.0.0 :: STATUS [ERRO: Houve um erro ao carregar as SelectBoxes, verifique o ID das mesmas]');
+		console.error('[JS] LocaliZaZ - v1.9.0.1 :: STATUS [ERRO: Houve um erro ao carregar as SelectBoxes, verifique o ID das mesmas]');
 	}
 };
 //------- SELECIONA ---
@@ -38,18 +44,37 @@ function muda_estado(){
 	let cidade_selecionada = document.getElementById(cidade_box).selectedIndex;
 	document.getElementById(ibge_estado_inp).value = estados[estado_selecionado][2];//Códigos do IBGE - Estado
 	document.getElementById(ibge_cidade_inp).value = cod_ibge_cidades[estado_selecionado][cidade_selecionada];//Códigos do IBGE - Cidades
+	//cidades
 	for(var cid in cidades[estado_selecionado]){
 		let c = document.createElement("option");
 		c.text = cidades[estado_selecionado][cid];
 		c.value = cidades[estado_selecionado][cid];
 		document.getElementById(cidade_box).appendChild(c);
 	}
+	//aeros
+	for(var iata in cod_iata[estado_selecionado]){
+		let iat = document.createElement("option");
+		iat.text = cod_iata[estado_selecionado][iata][1] + " - " + cod_iata[estado_selecionado][iata][2];
+		iat.value = cod_iata[estado_selecionado][iata][2];
+		document.getElementById(iata_aeroportos).appendChild(iat);
+	}
+
 };
 function muda_cidade(){
 //Selecionar Códigos IBGE do município
+	document.getElementById(iata_aeroportos).innerHTML = ''; //limpa IATA Aeroportos
 	let estado_selecionado = document.getElementById(estado_box).selectedIndex;
 	let cidade_selecionada = document.getElementById(cidade_box).selectedIndex;
 	document.getElementById(ibge_cidade_inp).value = cod_ibge_cidades[estado_selecionado][cidade_selecionada];//Códigos do IBGE - Cidades
+	for(var iata in cod_iata[estado_selecionado]){
+		let iat = document.createElement("option");
+		iat.text = cod_iata[estado_selecionado][iata][1] + " - " + cod_iata[estado_selecionado][iata][2];
+		iat.value = cod_iata[estado_selecionado][iata][2];
+		if(cod_iata[estado_selecionado][iata][0] == document.getElementById(cidade_box).value){
+			console.log(cod_iata[estado_selecionado][iata][0]);
+			document.getElementById(iata_aeroportos).appendChild(iat);
+		}
+	}
 };
 //------- DADOS -------
 //ESTADOS [27] [nome, sigla, codigo ibge]
@@ -142,3 +167,32 @@ var cod_ibge_cidades = /*0.Aviso*/			([[""],
 					   /*26.Sergipe*/		["2800100","2800209","2800308","2800407","2800506","2800605","2800670","2800704","2801009","2801108","2801207","2801306","2801405","2801504","2801603","2801702","2801900","2802007","2802106","2802205","2802304","2802403","2802502","2802601","2802700","2802809","2802908","2803005","2803104","2803203","2803302","2803401","2803500","2803609","2803708","2803807","2803906","2804003","2804102","2804201","2804300","2804409","2804458","2804508","2804607","2804706","2804805","2804904","2805000","2805109","2805208","2805307","2805406","2805505","2805604","2805703","2805802","2805901","2806008","2806107","2806206","2806305","2806503","2806404","2806602","2806701","2806800","2806909","2807006","2807105","2807204","2807303","2807402","2807501","2807600"],
 					   /*27.Tocantins*/		["1700251","1700301","1700350","1700400","1700707","1701002","1701051","1701101","1701309","1701903","1702000","1702109","1702158","1702208","1702307","1702406","1702554","1702703","1702901","1703008","1703057","1703073","1703107","1703206","1703305","1703602","1703701","1703800","1703826","1703842","1703867","1703883","1703891","1703909","1704105","1705102","1704600","1705508","1716703","1705557","1705607","1706001","1706100","1706258","1706506","1707009","1707108","1707207","1707306","1707405","1707553","1707652","1707702","1708205","1708254","1708304","1709005","1709302","1709500","1709807","1710508","1710706","1710904","1711100","1711506","1711803","1711902","1711951","1712009","1712157","1712405","1712454","1712504","1712702","1712801","1713205","1713304","1713601","1713700","1713957","1714203","1714302","1714880","1715002","1715101","1715150","1715259","1715507","1721000","1715705","1713809","1715754","1716109","1716208","1716307","1716505","1716604","1716653","1717008","1717206","1717503","1717800","1717909","1718006","1718204","1718303","1718402","1718451","1718501","1718550","1718659","1718709","1718758","1718808","1718840","1718865","1718881","1718899","1718907","1719004","1720002","1720101","1720150","1720200","1720259","1720309","1720499","1720655","1720804","1720853","1720903","1720937","1720978","1721109","1721208","1721257","1721307","1722081","1722107"]]);
 					   
+//CÓDIGOS IATA
+var cod_iata =		   /*0.Aviso*/			([["", "", ""],
+					   /*1.Acre*/			[["Rio Branco", "Aeroporto Internacional de Rio Branco", "RBR"], ["Cruzeiro do Sul", "Aeroporto Internacional de Cruzeiro do Sul", "CZS"]],
+					   /*2.Alagoas*/		[["Maceió", "Aeroporto de Maceió", "MCZ"]],
+					   /*3.Amapá*/			[["Macapá", "Aeroporto Internacional de Macapá", "MCP"]],
+					   /*4.Amazonas*/		[["Manaus", "Aeroporto Internacional de Manaus", "MAO"]],
+					   /*5.Bahia*/			[["Salvador", "Aeroporto Internacional de Salvador", "SSA"], ["Porto Seguro", "Aeroporto Internacional de Porto Seguro", "BPS"], ["Ilhéus", "Aeroporto de Ilhéus", "IOS"]],
+					   /*6.Ceará*/			[["Fortaleza", "Aeroporto Internacional de Fortaleza", "FOR"], ["Juazeiro do Norte", "Aeroporto de Juazeiro do Norte", "JDO"]],
+					   /*7.D.F*/			[["Brasília", "Aeroporto Internacional de Brasília", "BSB"]],
+					   /*8.E.Santo*/		[["Vitória", "Aeroporto de Vitória", "VIX"]],
+					   /*9.Goiás*/			[["Goiânia", "Aeroporto de Goiânia", "GYN"]],
+					   /*10.Maranhão*/		[["São Luis", "Aeroporto Internacional de São Luís", "SLZ"], ["Imperatriz", "Aeroporto de Imperatriz", "IMP"]],
+					   /*11.M. Grosso*/		[["Cuiabá", "Aeroporto Internacional de Cuiabá", "CGB"]],
+					   /*12.M.GR. SUL*/		[["Campo Grande", "Aeroporto Internacional de Campo Grande", "CGR"]],
+					   /*13.M. Gerais*/		[["Uberlândia", "Aeroporto de Uberlândia", "UDI"], ["Confins", "Aeroporto Internacional de Minas Gerais", "CNF"], ["Montes Claros", "Aeroporto de Montes Claros", "MOC"]],
+					   /*14.Pará*/			[["Belém", "Aeroporto Internacional de Belém", "BEL"], ["Santarém", "Aeroporto de Santarém", "STM"], ["Marabá", "Aeroporto de Marabá", "MAB"]],
+					   /*15.Paraíba*/		[["João Pessoa", "Aeroporto Internacional de João Pessoa", "JPA"], ["Campina Grande", "Aeroporto de Campina Grande", "CPV"]],
+					   /*16.Paraná*/		[["Curitiba", "Aeroporto Internacional de Curitiba", "CWB"], ["Maringá", "Aeroporto Regional de Maringá", "MGF"], ["Londrina", "Aeroporto de Londrina", "LDB"], ["Foz do Iguaçu", "Aeroporto Internacional de Foz do Iguaçu", "IGU"]],
+					   /*17.Pernambuco*/	[["Recife", "Aeroporto Internacional do Recife", "REC"], ["Petrolina", "Aeroporto de Petrolina", "PNZ"], ["Fernando de Noronha", "Aeroporto de Fernando de Noronha", "FEN"]],
+					   /*18.Piauí*/			[["Teresina", "Aeroporto de Teresina", "THE"]],
+					   /*19.R.G Norte*/		[["Natal", "Aeroporto Internacional de Natal", "NAT"]],
+					   /*20.R.G Sul*/		[["Porto Alegre", "Aeroporto Internacional de Porto Alegre", "POA"], ["Caxias do Sul", "Aeroporto Regional de Caxias do Sul", "CXJ"]],
+					   /*21.R. Janeiro*/	[["Ilha do Governador", "Aeroporto Internacional do Rio de Janeiro", "GIG"], ["Rio de Janeiro", "Aerorporto Santos Dumont", "SDU"], ["Cabo Frio", "Aeroporto Internacional de Cabo Frio", "CFB"]],
+					   /*22.Rondônia*/		[["Porto Velho", "Aeroporto Internacional de Porto Velho", "PVH"]],
+					   /*23.Roraima*/		[["Boa Vista", "Aeroporto Internacional de Boa Vista", "BVB"]],
+					   /*24.St. Catarina*/	[["Florianópolis", "Aeroporto Internacional de Florianópolis", "FLN"], ["Navegantes", "Aeroporto Internacional de Navegantes", "NVT"], ["Joinville", "Aeroporto de Joinville", "JOI"], ["Chapecó", "Aeroporto de Chapecó", "XAP"]],
+					   /*25.São Paulo*/		[["São Paulo", "Aeroporto Internacional de São Paulo", "CGH"], ["Campinas", "Aeroporto Internacional de Viracopos", "VCP"], ["Guarulhos", "Aeroporto Internacional de Guarulhos", "GRU"], ["Presidente Prudente", "Aeroporto Estadual de Presidente Prudente", "PPB"], ["Bauru", "Aeroporto Estadual de Bauru", "JTC"]],
+					   /*26.Sergipe*/		[["Aracaju", "Aeroporto Internacional de Aracaju", "AJU"]],
+					   /*27.Tocantins*/		[["Palmas", "Aeroporto de Palmas", "PMW"]]]);
