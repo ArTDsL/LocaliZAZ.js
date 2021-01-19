@@ -1,25 +1,29 @@
 <html>
 	<head>	
 		<meta charset="utf-8" />
-		<title>LocaliZAZ :: 1.0.0.0</title>
+		<title>LocaliZAZ :: 1.9.0.1</title>
 		<script type="text/javascript" src="localizaz_demo.js"></script>
 	</head>
 	<body>
 		<center>
 			<!-- CABEÇALHO -->
-			<h1>LocaliZAZ :: v1.0.0.0</h1>
+			<h1>LocaliZAZ :: v1.9.0.1</h1>
 			<h5>Desenvolvido por: Arthur "ArT_DsL" Dias dos Santos Lasso</h5>
 			<!-- -------- -->
 			<!-- CIDADES, ESTADOS E CÓDIGOS IBGE -->
 			<hr>
-			<h3>ESTADOS, CIDADES E CÓDIGOS DO IBGE <u>(ELEM. MULTIPLOS)</u></h3>
+			<h3>ESTADOS, CIDADES E CÓDIGOS DO IBGE <u>(ELEM. MULTIPLOS COMBINADOS)</u></h3>
 			<h4>Você pode utilizar dois ou mais elementos em conjunto, fazendo com que um retorne as
-			<br>informações necessárias do outro, um exemplo são os Estados, Cidades e os Códigos do IBGE.</h4>
+			<br>informações necessárias do outro, um exemplo são os Estados, Cidades e os Códigos do IBGE,
+			<br>outro exemplo possível é utilizar o estados para selecionar os aeroportos, ao selecionar
+			<br>somente o estado serão retornados todos os aeroportos daquele mesmo estado, caso selecione
+			<br>a cidade será retornado os aeroportos somente daquela cidade.</h4>
 			<br>
 			<select id="estado_sb" name="estado_sb" onchange="muda_estado();"></select>
 			<input type="number" id="ibge_estado_input" name="ibge_estado_input" placeholder="Código IBGE Estado"/>
 			<select id="cidade_sb" name="cidade_sb" onchange="muda_cidade();"></select>
 			<input type="number" id="ibge_cidade_input" name="ibge_cidade_input" placeholder="Código IBGE Município"/>
+			<select id="iata_input" name="iata_input" onchange=""></select>
 			<br><br><br>
 			<i><h5>"Código"<h5></i>
 <textarea type="code" style="width: 800px; height: 90px;">
@@ -27,13 +31,14 @@
 <input type="number" id="ibge_estado_input" name="ibge_estado_input" placeholder="Código IBGE Estado"/>
 <select id="cidade_sb" name="cidade_sb" onchange="muda_cidade();"></select>
 <input type="number" id="ibge_cidade_input" name="ibge_cidade_input" placeholder="Código IBGE Município"/>
+<select id="iata_input" name="iata_input" onchange=""></select>
 </textarea>
 			<br>
 			<br>
 			<hr>
 			<!-- -------- -->
 			<!-- ESTADOS E CIDADES -->
-			<h3>ESTADOS <u>(ELEM. UNICO)</u></h3>
+			<h3>ESTADOS / CIDADES <u>(ELEM. MULTIPLOS)</u></h3>
 			<h4>Você pode utilizar dois elementos em conjunto, fazendo com que um retorne as
 			<br>que um retorne as informações necessárias do outro, um exemplo são os Estados e as Cidades.</h4>
 			<br>
@@ -50,8 +55,7 @@
 			<!-- -------- -->
 			<!-- ESTADOS -->
 			<h3>ESTADOS <u>(ELEM. UNICO)</u></h3>
-			<h4>Você pode utilizar dois elementos em conjunto, fazendo com que um retorne as
-			<br>que um retorne as informações necessárias do outro, um exemplo são os Estados e as Cidades.</h4>
+			<h4>Você pode utilizar um elemento unico para realizar uma unica função.</h4>
 			<br>
 			<select id="estado_sb3" name="estado_sb3"></select>
 			<br><br><br>

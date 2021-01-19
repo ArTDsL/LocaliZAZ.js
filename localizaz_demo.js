@@ -2,9 +2,14 @@
 	LOCALIZAZ - J.S
 	
 	O Script localizaz é um script feito em J.S para buscar estados,
-	cidades e códigos numericos para ambos segundo o IBGE.
+	cidades, códigos numericos para ambos segundo o IBGE e Códigos
+	de Aeroportos (IATA).
 	
-	Versão :: 1.0.0.0
+	**
+	19/01/2021 - Adicionado Códigos IATA.
+	**
+
+	Versão :: 1.9.0.1
 	Dados do IBGE :: 06/2020
 	
 	Desenvolvido por: Arthur "ArT_DsL" Dias dos Santos Lasso
@@ -15,6 +20,7 @@ const estado_box = "estado_sb";
 const cidade_box = "cidade_sb";
 const ibge_estado_inp = "ibge_estado_input";
 const ibge_cidade_inp = "ibge_cidade_input";
+const iata_aeroportos = "iata_input";
 //------- CARREGA -----
 window.onload = function(){
 	if(document.getElementById(estado_box) && document.getElementById(cidade_box)){
@@ -32,9 +38,9 @@ window.onload = function(){
 			document.getElementById("cidades_sb2").innerHTML += ('<option value="' + cidades[0][1] + '">' + cidades[0][0] + '</option>');
 			/*[ FIM EXEMPLOS ]*/
 		//log
-		console.log('[JS] LocaliZaZ - v1.0.0.0 :: STATUS [CARREGADO]');
+		console.log('[JS] LocaliZaZ - v1.9.0.1 :: STATUS [CARREGADO]');
 	}else{
-		console.error('[JS] LocaliZaZ - v1.0.0.0 :: STATUS [ERRO: Houve um erro ao carregar as SelectBoxes, verifique o ID das mesmas]');
+		console.error('[JS] LocaliZaZ - v1.9.0.1 :: STATUS [ERRO: Houve um erro ao carregar as SelectBoxes, verifique o ID das mesmas]');
 	}
 };
 //------- SELECIONA ---
@@ -45,11 +51,19 @@ function muda_estado(){
 	let cidade_selecionada = document.getElementById(cidade_box).selectedIndex;
 	document.getElementById(ibge_estado_inp).value = estados[estado_selecionado][2];//Códigos do IBGE - Estado
 	document.getElementById(ibge_cidade_inp).value = cod_ibge_cidades[estado_selecionado][cidade_selecionada];//Códigos do IBGE - Cidades
+	//cidades
 	for(var cid in cidades[estado_selecionado]){
 		let c = document.createElement("option");
 		c.text = cidades[estado_selecionado][cid];
 		c.value = cidades[estado_selecionado][cid];
 		document.getElementById(cidade_box).appendChild(c);
+	}
+	//aeros
+	for(var iata in cod_iata[estado_selecionado]){
+		let iat = document.createElement("option");
+		iat.text = cod_iata[estado_selecionado][iata][1] + " - " + cod_iata[estado_selecionado][iata][2];
+		iat.value = cod_iata[estado_selecionado][iata][2];
+		document.getElementById(iata_aeroportos).appendChild(iat);
 	}
 	
 	/*[ EXEMPLOS ]*/
@@ -65,9 +79,19 @@ function muda_estado(){
 };
 function muda_cidade(){
 //Selecionar Códigos IBGE do município
+	document.getElementById(iata_aeroportos).innerHTML = ''; //limpa IATA Aeroportos
 	let estado_selecionado = document.getElementById(estado_box).selectedIndex;
 	let cidade_selecionada = document.getElementById(cidade_box).selectedIndex;
 	document.getElementById(ibge_cidade_inp).value = cod_ibge_cidades[estado_selecionado][cidade_selecionada];//Códigos do IBGE - Cidades
+	for(var iata in cod_iata[estado_selecionado]){
+		let iat = document.createElement("option");
+		iat.text = cod_iata[estado_selecionado][iata][1] + " - " + cod_iata[estado_selecionado][iata][2];
+		iat.value = cod_iata[estado_selecionado][iata][2];
+		if(cod_iata[estado_selecionado][iata][0] == document.getElementById(cidade_box).value){
+			console.log(cod_iata[estado_selecionado][iata][0]);
+			document.getElementById(iata_aeroportos).appendChild(iat);
+		}
+	}
 };
 //------- DADOS -------
 //ESTADOS [27] [nome, sigla, codigo ibge]
@@ -159,4 +183,33 @@ var cod_ibge_cidades = /*0.Aviso*/			([[""],
 					   /*25.São Paulo*/		["3500105","3500204","3500303","3500402","3500501","3500550","3500600","3500709","3500758","3500808","3500907","3501004","3501103","3501152","3501202","3501301","3501400","3501509","3501608","3501707","3501806","3501905","3502002","3502101","3502200","3502309","3502408","3502507","3502606","3502705","3502754","3502804","3502903","3503000","3503109","3503158","3503208","3503307","3503356","3503406","3503505","3503604","3503703","3503802","3503901","3503950","3504008","3504107","3504206","3504305","3504404","3504503","3504602","3504701","3504800","3504909","3505005","3505104","3505203","3505302","3505351","3505401","3505500","3505609","3505708","3505807","3505906","3506003","3506102","3506201","3506300","3506359","3506409","3506508","3506607","3506706","3506805","3506904","3507001","3507100","3507159","3507209","3507308","3507407","3507456","3507506","3507605","3507704","3507753","3507803","3507902","3508009","3508108","3508207","3508306","3508405","3508504","3508603","3508702","3508801","3508900","3509007","3509106","3509205","3509254","3509304","3509403","3509452","3509502","3509601","3509700","3509809","3509908","3509957","3510005","3510104","3510153","3510203","3510302","3510401","3510500","3510609","3510708","3510807","3510906","3511003","3511102","3511201","3511300","3511409","3511508","3511607","3511706","3557204","3511904","3512001","3512100","3512209","3512308","3512407","3512506","3512605","3512704","3512803","3512902","3513009","3513108","3513207","3513306","3513405","3513504","3513603","3513702","3513801","3513850","3513900","3514007","3514106","3514205","3514304","3514403","3514502","3514601","3514700","3514809","3514908","3514924","3514957","3515004","3515103","3515129","3515152","3515186","3515194","3557303","3515301","3515202","3515350","3515400","3515608","3515509","3515657","3515707","3515806","3515905","3516002","3516101","3516200","3516309","3516408","3516507","3516606","3516705","3516804","3516853","3516903","3517000","3517109","3517208","3517307","3517406","3517505","3517604","3517703","3517802","3517901","3518008","3518107","3518206","3518305","3518404","3518503","3518602","3518701","3518800","3518859","3518909","3519006","3519055","3519071","3519105","3519204","3519253","3519303","3519402","3519501","3519600","3519709","3519808","3519907","3520004","3520103","3520202","3520301","3520426","3520442","3520400","3520509","3520608","3520707","3520806","3520905","3521002","3521101","3521150","3521200","3521309","3521408","3521507","3521606","3521705","3521804","3521903","3522000","3522109","3522158","3522208","3522307","3522406","3522505","3522604","3522653","3522703","3522802","3522901","3523008","3523107","3523206","3523305","3523404","3523503","3523602","3523701","3523800","3523909","3524006","3524105","3524204","3524303","3524402","3524501","3524600","3524709","3524808","3524907","3525003","3525102","3525201","3525300","3525409","3525508","3525607","3525706","3525805","3525854","3525904","3526001","3526100","3526209","3526308","3526407","3526506","3526605","3526704","3526803","3526902","3527009","3527108","3527207","3527256","3527306","3527405","3527504","3527603","3527702","3527801","3527900","3528007","3528106","3528205","3528304","3528403","3528502","3528601","3528700","3528809","3528858","3528908","3529005","3529104","3529203","3529302","3529401","3529500","3529609","3529658","3529708","3529807","3530003","3529906","3530102","3530201","3530300","3530409","3530508","3530607","3530706","3530805","3530904","3531001","3531100","3531209","3531308","3531407","3531506","3531605","3531803","3531704","3531902","3532009","3532058","3532108","3532157","3532207","3532306","3532405","3532504","3532603","3532702","3532801","3532827","3532843","3532868","3532900","3533007","3533106","3533205","3533304","3533403","3533254","3533502","3533601","3533700","3533809","3533908","3534005","3534104","3534203","3534302","3534401","3534500","3534609","3534708","3534807","3534757","3534906","3535002","3535101","3535200","3535309","3535408","3535507","3535606","3535705","3535804","3535903","3536000","3536109","3536208","3536257","3536307","3536406","3536505","3536570","3536604","3536703","3536802","3536901","3537008","3537107","3537156","3537206","3537305","3537404","3537503","3537602","3537701","3537800","3537909","3538006","3538105","3538204","3538303","3538501","3538600","3538709","3538808","3538907","3539004","3539103","3539202","3539301","3539400","3539509","3539608","3539707","3539806","3539905","3540002","3540101","3540200","3540259","3540309","3540408","3540507","3540606","3540705","3540754","3540804","3540853","3540903","3541000","3541059","3541109","3541208","3541307","3541406","3541505","3541604","3541653","3541703","3541802","3541901","3542008","3542107","3542206","3542305","3542404","3542503","3542602","3542701","3542800","3542909","3543006","3543105","3543204","3543238","3543253","3543303","3543402","3543600","3543709","3543808","3543907","3544004","3544103","3544202","3543501","3544251","3544301","3544400","3544509","3544608","3544707","3544806","3544905","3545001","3545100","3545159","3545209","3545308","3545407","3545506","3545605","3545704","3545803","3546009","3546108","3546207","3546256","3546306","3546405","3546504","3546603","3546702","3546801","3546900","3547007","3547106","3547502","3547403","3547601","3547650","3547205","3547304","3547700","3547809","3547908","3548005","3548054","3548104","3548203","3548302","3548401","3548500","3548609","3548708","3548807","3548906","3549003","3549102","3549201","3549250","3549300","3549409","3549508","3549607","3549706","3549805","3549904","3549953","3550001","3550100","3550209","3550308","3550407","3550506","3550605","3550704","3550803","3550902","3551009","3551108","3551207","3551306","3551405","3551603","3551504","3551702","3551801","3551900","3552007","3552106","3552205","3552304","3552403","3552551","3552502","3552601","3552700","3552809","3552908","3553005","3553104","3553203","3553302","3553401","3553500","3553609","3553658","3553708","3553807","3553856","3553906","3553955","3554003","3554102","3554201","3554300","3554409","3554508","3554607","3554656","3554706","3554755","3554805","3554904","3554953","3555000","3555109","3555208","3555307","3555356","3555406","3555505","3555604","3555703","3555802","3555901","3556008","3556107","3556206","3556305","3556354","3556404","3556453","3556503","3556602","3556701","3556800","3556909","3556958","3557006","3557105","3557154"],
 					   /*26.Sergipe*/		["2800100","2800209","2800308","2800407","2800506","2800605","2800670","2800704","2801009","2801108","2801207","2801306","2801405","2801504","2801603","2801702","2801900","2802007","2802106","2802205","2802304","2802403","2802502","2802601","2802700","2802809","2802908","2803005","2803104","2803203","2803302","2803401","2803500","2803609","2803708","2803807","2803906","2804003","2804102","2804201","2804300","2804409","2804458","2804508","2804607","2804706","2804805","2804904","2805000","2805109","2805208","2805307","2805406","2805505","2805604","2805703","2805802","2805901","2806008","2806107","2806206","2806305","2806503","2806404","2806602","2806701","2806800","2806909","2807006","2807105","2807204","2807303","2807402","2807501","2807600"],
 					   /*27.Tocantins*/		["1700251","1700301","1700350","1700400","1700707","1701002","1701051","1701101","1701309","1701903","1702000","1702109","1702158","1702208","1702307","1702406","1702554","1702703","1702901","1703008","1703057","1703073","1703107","1703206","1703305","1703602","1703701","1703800","1703826","1703842","1703867","1703883","1703891","1703909","1704105","1705102","1704600","1705508","1716703","1705557","1705607","1706001","1706100","1706258","1706506","1707009","1707108","1707207","1707306","1707405","1707553","1707652","1707702","1708205","1708254","1708304","1709005","1709302","1709500","1709807","1710508","1710706","1710904","1711100","1711506","1711803","1711902","1711951","1712009","1712157","1712405","1712454","1712504","1712702","1712801","1713205","1713304","1713601","1713700","1713957","1714203","1714302","1714880","1715002","1715101","1715150","1715259","1715507","1721000","1715705","1713809","1715754","1716109","1716208","1716307","1716505","1716604","1716653","1717008","1717206","1717503","1717800","1717909","1718006","1718204","1718303","1718402","1718451","1718501","1718550","1718659","1718709","1718758","1718808","1718840","1718865","1718881","1718899","1718907","1719004","1720002","1720101","1720150","1720200","1720259","1720309","1720499","1720655","1720804","1720853","1720903","1720937","1720978","1721109","1721208","1721257","1721307","1722081","1722107"]]);
-					   
+					  
+//CÓDIGOS IATA
+var cod_iata =		   /*0.Aviso*/			([["", "", ""],
+					   /*1.Acre*/			[["Rio Branco", "Aeroporto Internacional de Rio Branco", "RBR"], ["Cruzeiro do Sul", "Aeroporto Internacional de Cruzeiro do Sul", "CZS"]],
+					   /*2.Alagoas*/		[["Maceió", "Aeroporto de Maceió", "MCZ"]],
+					   /*3.Amapá*/			[["Macapá", "Aeroporto Internacional de Macapá", "MCP"]],
+					   /*4.Amazonas*/		[["Manaus", "Aeroporto Internacional de Manaus", "MAO"]],
+					   /*5.Bahia*/			[["Salvador", "Aeroporto Internacional de Salvador", "SSA"], ["Porto Seguro", "Aeroporto Internacional de Porto Seguro", "BPS"], ["Ilhéus", "Aeroporto de Ilhéus", "IOS"]],
+					   /*6.Ceará*/			[["Fortaleza", "Aeroporto Internacional de Fortaleza", "FOR"], ["Juazeiro do Norte", "Aeroporto de Juazeiro do Norte", "JDO"]],
+					   /*7.D.F*/			[["Brasília", "Aeroporto Internacional de Brasília", "BSB"]],
+					   /*8.E.Santo*/		[["Vitória", "Aeroporto de Vitória", "VIX"]],
+					   /*9.Goiás*/			[["Goiânia", "Aeroporto de Goiânia", "GYN"]],
+					   /*10.Maranhão*/		[["São Luis", "Aeroporto Internacional de São Luís", "SLZ"], ["Imperatriz", "Aeroporto de Imperatriz", "IMP"]],
+					   /*11.M. Grosso*/		[["Cuiabá", "Aeroporto Internacional de Cuiabá", "CGB"]],
+					   /*12.M.GR. SUL*/		[["Campo Grande", "Aeroporto Internacional de Campo Grande", "CGR"]],
+					   /*13.M. Gerais*/		[["Uberlândia", "Aeroporto de Uberlândia", "UDI"], ["Confins", "Aeroporto Internacional de Minas Gerais", "CNF"], ["Montes Claros", "Aeroporto de Montes Claros", "MOC"]],
+					   /*14.Pará*/			[["Belém", "Aeroporto Internacional de Belém", "BEL"], ["Santarém", "Aeroporto de Santarém", "STM"], ["Marabá", "Aeroporto de Marabá", "MAB"]],
+					   /*15.Paraíba*/		[["João Pessoa", "Aeroporto Internacional de João Pessoa", "JPA"], ["Campina Grande", "Aeroporto de Campina Grande", "CPV"]],
+					   /*16.Paraná*/		[["Curitiba", "Aeroporto Internacional de Curitiba", "CWB"], ["Maringá", "Aeroporto Regional de Maringá", "MGF"], ["Londrina", "Aeroporto de Londrina", "LDB"], ["Foz do Iguaçu", "Aeroporto Internacional de Foz do Iguaçu", "IGU"]],
+					   /*17.Pernambuco*/	[["Recife", "Aeroporto Internacional do Recife", "REC"], ["Petrolina", "Aeroporto de Petrolina", "PNZ"], ["Fernando de Noronha", "Aeroporto de Fernando de Noronha", "FEN"]],
+					   /*18.Piauí*/			[["Teresina", "Aeroporto de Teresina", "THE"]],
+					   /*19.R.G Norte*/		[["Natal", "Aeroporto Internacional de Natal", "NAT"]],
+					   /*20.R.G Sul*/		[["Porto Alegre", "Aeroporto Internacional de Porto Alegre", "POA"], ["Caxias do Sul", "Aeroporto Regional de Caxias do Sul", "CXJ"]],
+					   /*21.R. Janeiro*/	[["Ilha do Governador", "Aeroporto Internacional do Rio de Janeiro", "GIG"], ["Rio de Janeiro", "Aerorporto Santos Dumont", "SDU"], ["Cabo Frio", "Aeroporto Internacional de Cabo Frio", "CFB"]],
+					   /*22.Rondônia*/		[["Porto Velho", "Aeroporto Internacional de Porto Velho", "PVH"]],
+					   /*23.Roraima*/		[["Boa Vista", "Aeroporto Internacional de Boa Vista", "BVB"]],
+					   /*24.St. Catarina*/	[["Florianópolis", "Aeroporto Internacional de Florianópolis", "FLN"], ["Navegantes", "Aeroporto Internacional de Navegantes", "NVT"], ["Joinville", "Aeroporto de Joinville", "JOI"], ["Chapecó", "Aeroporto de Chapecó", "XAP"]],
+					   /*25.São Paulo*/		[["São Paulo", "Aeroporto Internacional de São Paulo", "CGH"], ["Campinas", "Aeroporto Internacional de Viracopos", "VCP"], ["Guarulhos", "Aeroporto Internacional de Guarulhos", "GRU"], ["Presidente Prudente", "Aeroporto Estadual de Presidente Prudente", "PPB"], ["Bauru", "Aeroporto Estadual de Bauru", "JTC"]],
+					   /*26.Sergipe*/		[["Aracaju", "Aeroporto Internacional de Aracaju", "AJU"]],
+					   /*27.Tocantins*/		[["Palmas", "Aeroporto de Palmas", "PMW"]]]);
