@@ -1,13 +1,13 @@
 <html>
 	<head>	
 		<meta charset="utf-8" />
-		<title>LocaliZAZ :: 1.9.0.1</title>
+		<title>LocaliZAZ :: 2.0.0.0</title>
 		<script type="text/javascript" src="localizaz_demo.js"></script>
 	</head>
 	<body>
 		<center>
 			<!-- CABEÇALHO -->
-			<h1>LocaliZAZ :: v1.9.0.1</h1>
+			<h1>LocaliZAZ :: v2.0.0.0</h1>
 			<h5>Desenvolvido por: Arthur "ArT_DsL" Dias dos Santos Lasso</h5>
 			<!-- -------- -->
 			<!-- CIDADES, ESTADOS E CÓDIGOS IBGE -->
@@ -24,7 +24,10 @@
 			<select id="cidade_sb" name="cidade_sb" onchange="muda_cidade();"></select>
 			<input type="number" id="ibge_cidade_input" name="ibge_cidade_input" placeholder="Código IBGE Município"/>
 			<select id="iata_input" name="iata_input" onchange=""></select>
-			<br><br><br>
+			<input id="codpostal_input" name="codpostal_input" onchange="buscaDadosCEP();" placeholder="Digite seu CEP" />
+			<br><br>
+			<div id="resultado_cep" style="display: none;"></div>
+			<br><br>
 			<i><h5>"Código"<h5></i>
 <textarea type="code" style="width: 800px; height: 90px;">
 <select id="estado_sb" name="estado_sb" onchange="muda_estado();"></select>
@@ -32,6 +35,8 @@
 <select id="cidade_sb" name="cidade_sb" onchange="muda_cidade();"></select>
 <input type="number" id="ibge_cidade_input" name="ibge_cidade_input" placeholder="Código IBGE Município"/>
 <select id="iata_input" name="iata_input" onchange=""></select>
+<input id="codpostal_input" name="codpostal_input" onchange="buscaDadosCEP();" placeholder="Digite seu CEP" />
+<div id="resultado_cep" style="display: none;"></div>
 </textarea>
 			<br>
 			<br>

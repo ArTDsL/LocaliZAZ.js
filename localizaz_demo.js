@@ -2,14 +2,14 @@
 	LOCALIZAZ - J.S
 	
 	O Script localizaz é um script feito em J.S para buscar estados,
-	cidades, códigos numericos para ambos segundo o IBGE e Códigos
-	de Aeroportos (IATA).
+	cidades, códigos numericos para ambos segundo o IBGE, Códigos
+	de Aeroportos (IATA) e Busca de dados por CEP.
 	
 	**
-	19/01/2021 - Adicionado Códigos IATA.
+	02/02/2021 - Adicionado Códigos IATA.
 	**
 
-	Versão :: 1.9.0.1
+	Versão :: 2.0.0.0
 	Dados do IBGE :: 06/2020
 	
 	Desenvolvido por: Arthur "ArT_DsL" Dias dos Santos Lasso
@@ -21,6 +21,9 @@ const cidade_box = "cidade_sb";
 const ibge_estado_inp = "ibge_estado_input";
 const ibge_cidade_inp = "ibge_cidade_input";
 const iata_aeroportos = "iata_input";
+const cod_postal = "codpostal_input";
+//cep
+const res_cep = "resultado_cep"; //saida dos resultados do CEP - [EXEMPLO]
 //------- CARREGA -----
 window.onload = function(){
 	if(document.getElementById(estado_box) && document.getElementById(cidade_box)){
@@ -38,9 +41,9 @@ window.onload = function(){
 			document.getElementById("cidades_sb2").innerHTML += ('<option value="' + cidades[0][1] + '">' + cidades[0][0] + '</option>');
 			/*[ FIM EXEMPLOS ]*/
 		//log
-		console.log('[JS] LocaliZaZ - v1.9.0.1 :: STATUS [CARREGADO]');
+		console.log('[JS] LocaliZaZ - v2.0.0.0 :: STATUS [CARREGADO]');
 	}else{
-		console.error('[JS] LocaliZaZ - v1.9.0.1 :: STATUS [ERRO: Houve um erro ao carregar as SelectBoxes, verifique o ID das mesmas]');
+		console.error('[JS] LocaliZaZ - v2.0.0.0 :: STATUS [ERRO: Houve um erro ao carregar as SelectBoxes, verifique o ID das mesmas]');
 	}
 };
 //------- SELECIONA ---
@@ -92,6 +95,46 @@ function muda_cidade(){
 			document.getElementById(iata_aeroportos).appendChild(iat);
 		}
 	}
+};
+function buscaDadosCEP(){
+	var request = new XMLHttpRequest();
+	
+	//url para get request direta, atilizando a API do VIACEP, processo feito em XHR para suporte a navegadores IE8+
+	request.open('GET', 'https://viacep.com.br/ws/'+codpostal_input.value+'/json/', true);
+	request.responseType = "json"; // suporte para navegadores mais novos.
+	request.overrideMimeType("application/json"); // suporte para navegadores antigos. (IE 11 -)
+	request.onloadend = function() {
+	    var retorno = JSON.parse(JSON.stringify(request.response));
+	    //console.log(retorno); // retorna no console as linhas adquiridas na pesquisa.
+
+	    //---- Seleciona opções derivadas ----
+	    document.getElementById(estado_box).value = retorno.uf;
+	    muda_estado();//executa mudança de estado
+	    document.getElementById(cidade_box).value = retorno.localidade;
+	    muda_cidade();//executa mudança de cidade
+	    //------------------------------------
+
+	    //outros dados do CEP [EXEMPLO]
+	    document.getElementById(res_cep).style.display = 'block';
+	    document.getElementById(res_cep).innerHTML = "<b>[ENDEREÇO:</b> " + retorno.logradouro + "<b>] - [BAIRRO:</b> " + retorno.bairro + "<b>]</b>";
+
+	    /*	--------------------------
+			Você pode obter outros dados utilizando outros Objetos do JSON retornado:
+			--------------------------
+			- retorno.logradouro: Endereço do CEP digitado,
+			- retorno.bairro: Bairro do CEP digitado,
+			- retorno.cep: CEP formatado contendo apenas números e traço,
+			- retorno.complemento: Complemento do CEP digitado (Endereço),
+			- retorno.localidade: Cidade do CEP digitado,
+			- retorno.uf: Estado do CEP digitado,
+			- retorno.ibge: Código do IBGE referente a Cidade,
+			- retorno.gia: GIA/ICMS da cidade/região onde se localiza o CEP,
+			- retorno.ddd: DDD da cidade/região onde se localiza o CEP,
+			- retorno.siafi: Código da Cidade S.I.A.F.I (Sistema Integrado de Administração Financeira) da cidade/região onde se localiza o CEP.
+	    */
+	};
+
+	request.send();
 };
 //------- DADOS -------
 //ESTADOS [27] [nome, sigla, codigo ibge]
