@@ -26,7 +26,7 @@ const cod_postal = "codpostal_input";
 ```
 
 ### RETORNO DOS DADOS CEP
-Utilizamos a API do [ViaCEP](https://www.viacep.com.br/) junto dos dados do LocaliZAZ para retornar as informações sobre os códigos postais, nesse caso é necessário que o desenvolvedor direcione os dados recebidos pela API para seu sistema ou campos necessários, para fazer isso procure pela linha:
+Utilizamos a API do [ViaCEP](https://viacep.com.br/) junto dos dados do LocaliZAZ para retornar as informações sobre os códigos postais, nesse caso é necessário que o desenvolvedor direcione os dados recebidos pela API para seu sistema ou campos necessários, para fazer isso procure pela linha:
 
 ```
 // _________PROGRAME___AQUI___O___DESTINO___DOS___DADOS___RECEBIDOS_________ //
