@@ -2,6 +2,8 @@
 ### O localizaz é um script feito totalmente em JavaScript, o qual permite o programador adquirir Estados, Cidades, Número do IBGE, Códigos IATA e Códigos Postais (com detalhes como: Endereço, Bairro, IAG/ICMS, etc...).
 ```O uso do projeto é livre, peço somente que coloquem os créditos!```
 
+Teste o LocaliZaZ no Github Pages: [https://artdsl.github.io/LocaliZAZ.js/](https://artdsl.github.io/LocaliZAZ.js/)
+
 Testado o mesmo roda em navegadores **IE 8+**, verifique a compatibilidade do seu navegador executando o arquivo de teste, caso queira dar um feedback ficarei muito grato ♥!
 
 
@@ -48,8 +50,5 @@ O desenvolvedor pode usar os seguintes objetos JSON para retornar os dados:
 ```
 
 Gostou do projeto? Quer me ajudar a manter o mesmo? Ajude com uma contribuição, fork, compartilhamento ou donate ^-^.
-
-
-Paypal: arthur@artdslgames.com.br
 
 Twitter: @ArT_DsL
