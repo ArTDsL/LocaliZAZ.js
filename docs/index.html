@@ -1,81 +1,145 @@
+<!DOCTYPE html>
 <html>
 	<head>	
 		<meta charset="utf-8" />
-		<title>LocaliZAZ :: 2.0.0.0</title>
-		<script type="text/javascript" src="localizaz_demo.js"></script>
+		<title>LocaliZAZ :: 3.0.0.0</title>
+		<script type="text/javascript" src="localizaz.min.js"></script>
+		<style>
+			body{
+				font-family: 'Lucida Console', sans-serif;
+			}
+			/* Remove botão de seta pra cima/baixo nos campos numéricos */
+			input::-webkit-outer-spin-button, input::-webkit-inner-spin-button{
+				-webkit-appearance: none;
+				margin: 0;
+			}
+			input[type=number]{
+				-moz-appearance:textfield; /* Firefox */
+			}
+		</style>
 	</head>
 	<body>
 		<center>
 			<!-- CABEÇALHO -->
-			<h1>LocaliZAZ :: v2.0.0.0</h1>
-			<h5>Desenvolvido por: Arthur "ArT_DsL" Dias dos Santos Lasso</h5>
+			<h1><span style="font-weight: 400;">LocaliZAZ ::::</span> v3.0.0.0</h1>
+			<h5>Desenvolvido por: Arthur "<a href="https://artdsl.space/" target="_blank">ArTDsL</a>" Dias dos Santos Lasso</h5>
 			<!-- -------- -->
 			<!-- CIDADES, ESTADOS E CÓDIGOS IBGE -->
 			<hr>
-			<h3>ESTADOS, CIDADES E CÓDIGOS DO IBGE <u>(ELEM. MULTIPLOS COMBINADOS)</u></h3>
-			<h4>Você pode utilizar dois ou mais elementos em conjunto, fazendo com que um retorne as
-			<br>informações necessárias do outro, um exemplo são os Estados, Cidades e os Códigos do IBGE,
+			<h3><span style="font-weight: 400;">ESTADOS, CIDADES E CÓDIGOS DO IBGE</span> <i>(ELEM. MULTIPLOS COMBINADOS)</i></h3>
+			<h4><span style="font-weight: 400;"><strong>Você pode utilizar dois ou mais elementos em conjunto, fazendo com que um retorne as
+			<br>informações necessárias do outro</strong>, um exemplo são os Estados, Cidades e os Códigos do IBGE,
 			<br>outro exemplo possível é utilizar o estados para selecionar os aeroportos, ao selecionar
 			<br>somente o estado serão retornados todos os aeroportos daquele mesmo estado, caso selecione
-			<br>a cidade será retornado os aeroportos somente daquela cidade.</h4>
+			<br>alguma cidade será retornado os aeroportos somente daquela cidade.</span></h4>
 			<br>
-			<select id="estado_sb" name="estado_sb" onchange="muda_estado();"></select>
-			<input type="number" id="ibge_estado_input" name="ibge_estado_input" placeholder="Código IBGE Estado"/>
-			<select id="cidade_sb" name="cidade_sb" onchange="muda_cidade();"></select>
-			<input type="number" id="ibge_cidade_input" name="ibge_cidade_input" placeholder="Código IBGE Município"/>
-			<select id="iata_input" name="iata_input" onchange=""></select>
-			<input id="codpostal_input" name="codpostal_input" onchange="buscaDadosCEP();" placeholder="Digite seu CEP" />
+			<strong>LZAZ-ID="1" →</strong> <select class="lzaz-estados" lzaz-id="1" title="Estados"></select>
+			<input type="number" id="ibge_estado" class="lzaz-ibge-estado" lzaz-id="1" placeholder="Cód. IBGE Estado" style="width: 120px; text-align: center;" title="Código IBGE do Estado" />
+			<select class="lzaz-cidades" lzaz-id="1" title="Cidades"></select>
+			<input type="number" class="lzaz-ibge-cidade" lzaz-id="1" placeholder="Cód. IBGE Cidade" style="width: 120px; text-align: center;" title="Código IBGE da Cidade" />
+			<select class="lzaz-iata" lzaz-id="1" title="Códigos IATA (International Air Transport Association) de Aeroportos"></select>
 			<br><br>
-			<div id="resultado_cep" style="display: none;"></div>
+			<strong>LZAZ-ID="2" →</strong> <select class="lzaz-estados" lzaz-id="2" title="Estados"></select>
+			<input type="number" id="ibge_estado" class="lzaz-ibge-estado" lzaz-id="2" placeholder="Cód. IBGE Estado" style="width: 120px; text-align: center;" title="Código IBGE do Estado" />
+			<select class="lzaz-cidades" lzaz-id="2" title="Cidades"></select>
+			<input type="number" class="lzaz-ibge-cidade" lzaz-id="2" placeholder="Cód. IBGE Cidade" style="width: 120px; text-align: center;" title="Código IBGE da Cidade" />
+			<select class="lzaz-iata" lzaz-id="2" title="Códigos IATA (International Air Transport Association) de Aeroportos"></select>
+			<p>
+				<br><br>
+				<br><i>Atributos:</i>
+				<br><strong>lzaz-id="</strong><u>ID-PARA-FAZER-JUNÇÃO</u><strong>"</strong> - Usado em todos os campos como atributo, para que
+				<br>um campo se comunique com outro eles devem possuir o <strong>mesmo lzaz-id</strong>.<br>
+				<br><i>Classes:</i>
+				<br><strong>lzaz-estados</strong> - Classe para SELECT que deve receber estados.
+				<br><strong>lzaz-cidades</strong> - Classe para SELECT que deve receber cidades.
+				<br><strong>lzaz-ibge-estado</strong> - Classe TEXT INPUT para receber IBGE estados.
+				<br><strong>lzaz-ibge-cidade</strong> - Classe TEXT INPUT para receber IBGE cidades.
+				<br><strong>lzaz-iata</strong> - Classe para SELECT que deve receber info. IATA.
+			</p>
 			<br><br>
-			<i><h5>"Código"<h5></i>
-<textarea type="code" style="width: 800px; height: 90px;">
-<select id="estado_sb" name="estado_sb" onchange="muda_estado();"></select>
-<input type="number" id="ibge_estado_input" name="ibge_estado_input" placeholder="Código IBGE Estado"/>
-<select id="cidade_sb" name="cidade_sb" onchange="muda_cidade();"></select>
-<input type="number" id="ibge_cidade_input" name="ibge_cidade_input" placeholder="Código IBGE Município"/>
-<select id="iata_input" name="iata_input" onchange=""></select>
-<input id="codpostal_input" name="codpostal_input" onchange="buscaDadosCEP();" placeholder="Digite seu CEP" />
-<div id="resultado_cep" style="display: none;"></div>
-</textarea>
+			<small>Código dos campos acima:</small>
 			<br>
-			<br>
-			<hr>
-			<!-- -------- -->
-			<!-- ESTADOS E CIDADES -->
-			<h3>ESTADOS / CIDADES <u>(ELEM. MULTIPLOS)</u></h3>
-			<h4>Você pode utilizar dois elementos em conjunto, fazendo com que um retorne as
-			<br>que um retorne as informações necessárias do outro, um exemplo são os Estados e as Cidades.</h4>
-			<br>
-			<select id="estado_sb2" name="estado_sb2" onchange="muda_estado();"></select>
-			<select id="cidades_sb2" name="cidades_sb2"></select>
+			<textarea style="margin-top: 3px; width: 735px; height: 200px;"><select class="lzaz-estados" lzaz-id="1" title="Estados"></select>
+
+<input type="number" id="ibge_estado" class="lzaz-ibge-estado" lzaz-id="1" placeholder="Cód. IBGE Estado" style="width: 120px; text-align: center;" title="Código IBGE do Estado" />
+
+<select class="lzaz-cidades" lzaz-id="1" title="Cidades"></select>
+
+<input type="number" class="lzaz-ibge-cidade" lzaz-id="1" placeholder="Cód. IBGE Cidade" style="width: 120px; text-align: center;" title="Código IBGE da Cidade" />
+
+<select class="lzaz-iata" lzaz-id="1" title="Códigos IATA (International Air Transport Association) de Aeroportos"></select></textarea>
+			<br><br><br><hr>
+			<!-- Busca de Endereço por CEP -->
+			<h3><span style="font-weight: 400;">CONSULTA ONLINE DE CEP</span> <i>(UTILIZANDO O <a href="https://viacep.com.br/" target="_blank">VIACEP</a>)</i></h3>
+			<h4><span style="font-weight: 400;">Você pode utilizar o serviço de consultas de CEP com o <strong><a href="https://viacep.com.br/" target="_blank">VIACEP</a></strong>, o mesmo já está integrado
+			<br>e pode ser usado de forma fácil apenas incluindo o atributo <strong>lzaz-viacep="on"</strong> juntamente
+			<br>com <strong>lzaz-vcepdata</strong> os INPUTS (descritos no tópico acima). Para ficar mais fácil entender,
+			<br>segue o exemplo:
+			<br><br>
+			<small><strong><u>AVISO:</u></strong> A API do <a href="https://viacep.com.br/" target="_blank">VIACEP</a> é gratuita, mas limita requições massivas <strong>tendo como
+			<br>penalidade o bloqueio por tempo indeterminado, utilize com respeito!</strong></small>
 			<br><br><br>
-			<i><h5>"Código"<h5></i>
-<textarea type="code" style="width: 650px; height: 50px;"><select id="estado_sb" name="estado_sb" onchange="muda_estado();"></select>
-<select id="cidades_sb" name="cidades_sb"></select>
-</textarea>
+			<strong>LZAZ-ID="3" →</strong>
+			<input type="text" class="lzaz-cep" lzaz-id="3" lzaz-viacep="on" pattern="[0-9\-]{9}" required title="CEP para buscar" placeholder="CEP" />
+			<select class="lzaz-estados" lzaz-id="3" title="Estados" lzaz-vcepdata="estado"></select>
+			<select class="lzaz-cidades" lzaz-id="3" title="Cidades" lzaz-vcepdata="localidade"></select>
+			<p>
+				<br><i>Dados que podem ser retornados da <strong>API ViaCEP</strong>:</i><br>
+				<br><strong>LZAZ-ID="3" →</strong> <strong>Cep:</strong> <span lzaz-id="3" lzaz-vcepdata="cep"><small><i>...</i></small></span>
+				<br><strong>LZAZ-ID="3" →</strong> <strong>UF:</strong> <span lzaz-id="3" lzaz-vcepdata="uf"><small><i>...</i></small></span>
+				<br><strong>LZAZ-ID="3" →</strong> <strong>Estado:</strong> <span lzaz-id="3" lzaz-vcepdata="estado"><small><i>...</i></small></span>
+				<br><strong>LZAZ-ID="3" →</strong> <strong>Cidade:</strong> <span lzaz-id="3" lzaz-vcepdata="localidade"><small><i>...</i></small></span>
+				<br><strong>LZAZ-ID="3" →</strong> <strong>Unidade:</strong> <span lzaz-id="3" lzaz-vcepdata="unidade"><small><i>...</i></small></span>
+				<br><strong>LZAZ-ID="3" →</strong> <strong>Endereço:</strong> <span lzaz-id="3" lzaz-vcepdata="logradouro"><small><i>...</i></small></span>
+				<br><strong>LZAZ-ID="3" →</strong> <strong>Bairro:</strong> <span lzaz-id="3" lzaz-vcepdata="bairro"><small><i>...</i></small></span>
+				<br><strong>LZAZ-ID="3" →</strong> <strong>Complemento:</strong> <span lzaz-id="3" lzaz-vcepdata="complemento"><small><i>...</i></small></span>
+				<br><strong>LZAZ-ID="3" →</strong> <strong>IBGE Cidade:</strong> <span lzaz-id="3" lzaz-vcepdata="ibge"><small><i>...</i></small></span>
+				<br><strong>LZAZ-ID="3" →</strong> <strong>Região:</strong> <span lzaz-id="3" lzaz-vcepdata="regiao"><small><i>...</i></small></span>
+				<br><strong>LZAZ-ID="3" →</strong> <strong>GIA/ICMS:</strong> <span lzaz-id="3" lzaz-vcepdata="gia"><small><i>...</i></small></span>
+				<br><strong>LZAZ-ID="3" →</strong> <strong>DDD:</strong> <span lzaz-id="3" lzaz-vcepdata="ddd"><small><i>...</i></small></span>
+				<br><strong>LZAZ-ID="3" →</strong> <strong>Código SIAFI:</strong> <span lzaz-id="3" lzaz-vcepdata="siafi"><small><i>...</i></small></span>
+			</p>
+			<br><br>
+			<small>Código dos campos acima:</small>
 			<br>
+			<textarea style="margin-top: 3px; width: 735px; height: 100px;"><input type="text" class="lzaz-cep" lzaz-id="3" lzaz-viacep="on" required title="CEP para buscar" placeholder="CEP" />
+
+<select class="lzaz-estados" lzaz-id="3" title="Estados" lzaz-vcepdata="estado"></select>
+
+<select class="lzaz-cidades" lzaz-id="3" title="Cidades" lzaz-vcepdata="localidade"></select></textarea>
+			<br><br>
+			<small>Código de alguns campos de dados:</small>
 			<br>
-			<hr>
-			<!-- -------- -->
-			<!-- ESTADOS -->
-			<h3>ESTADOS <u>(ELEM. UNICO)</u></h3>
-			<h4>Você pode utilizar um elemento unico para realizar uma unica função.</h4>
+			<textarea style="margin-top: 3px; width: 735px; height: 100px;"><strong>Cep:</strong> <span lzaz-id="3" lzaz-vcepdata="cep"><small><i>...</i></small></span>
+
+<strong>UF:</strong> <span lzaz-id="3" lzaz-vcepdata="uf"><small><i>...</i></small></span>
+
+<strong>Estado:</strong> <span lzaz-id="3" lzaz-vcepdata="estado"><small><i>...</i></small></span>
+			</textarea>
+			<br><br>
+			Você também pode receber através de INPUTS:
+			<br><br>
+			<small>(utilize o campo de CEP anterior para puxar as informações aqui também!)</small>
+			<br><br>
+			<br><strong>LZAZ-ID="3" →</strong> Endereço: <input type="text" lzaz-id="3" lzaz-vcepdata="logradouro" style="width: 400px;" required readonly />
 			<br>
-			<select id="estado_sb3" name="estado_sb3"></select>
-			<br><br><br>
-			<i><h5>"Código"<h5></i>
-			<textarea type="code" style="width: 500px; height: 50px;"><select id="estado_sb" name="estado_sb"></select></textarea>
+			<br><strong>LZAZ-ID="3" →</strong> &nbsp;&nbsp;Bairro: <input type="text" lzaz-id="3" lzaz-vcepdata="bairro" style="width: 400px;" required readonly />
+			<br><br>
+			<br><br>
+			<small>Código dos campos acima:</small>
 			<br>
-			<br>
-			<hr>
+			<textarea style="margin-top: 3px; width: 735px; height: 60px;"><input type="text" lzaz-id="3" lzaz-vcepdata="logradouro" required />
+
+<input type="text" lzaz-id="3" lzaz-vcepdata="bairro" required />
+			</textarea>
+			<br><br><br><hr>
 			<!-- -------- -->
 			<!-- INFO -->
 			<h2><u>INFORMAÇÕES</u></h2>
-			<h4>É possível realizar diversas operações, basta realizar os ajustes pertinente ao necessário.
-			<br>Também é deveras recomendado utilizar o "localizaz.js" que se encontra na pasta <u>"/src/"</u> pois é o arquivo em modo produção.</h4>
+			<h4>É possível realizar diversas operações, basta ajustar conforme sua necessidade.
+			<br>É recomendado utilizar o "localizaz.min.js" que se encontra na pasta <u>"/src/"</u> pois é o arquivo em modo produção.</h4>
 			<br>
-			Caso haja duvidas, recomendações, modificações, todas serão bem vindas!
+			Caso haja duvidas, informações sobre bugs, recomendações, modificações, todas serão bem vindas!
 		</center>
 	</body>
 </html>

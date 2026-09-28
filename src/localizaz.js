@@ -1,126 +1,403 @@
-/*
-	LOCALIZAZ - J.S
-	
-	O Script localizaz é um script feito em J.S para buscar estados,
-	cidades, códigos numericos para ambos segundo o IBGE, Códigos
-	de Aeroportos (IATA) e Busca de dados por CEP.
-	
-	**
-	02/02/2021 - Adicionado Códigos IATA.
-	**
-
-	Versão :: 2.0.0.0
-	Dados do IBGE :: 06/2020
-	
-	Desenvolvido por: Arthur "ArT_DsL" Dias dos Santos Lasso
-	[ Página Oficial GitHub: https://github.com/ArTDsL/localizaz ]
-*/
-//------- GLOBAIS -----
-const estado_box = "estado_sb";
-const cidade_box = "cidade_sb";
-const ibge_estado_inp = "ibge_estado_input";
-const ibge_cidade_inp = "ibge_cidade_input";
-const iata_aeroportos = "iata_input";
-const cod_postal = "codpostal_input";
-//------- CARREGA -----
-window.onload = function(){
-	if(document.getElementById(estado_box) && document.getElementById(cidade_box)){
-		//estados
-		for(var est in estados){
-			document.getElementById(estado_box).innerHTML += ('<option value="' + estados[est][1] + '">' + estados[est][0] + '</option>');
+/**
+ * 
+ * LocaliZAZ.js
+ * 
+ * O Script localizaz é um script feito em J.S para buscar estados,
+ * cidades, códigos numericos (para ambos segundo o  IBGE), Códigos
+ * de Aeroportos (IATA) e Busca de dados por CEP.
+ * 
+ * @file localizaz.js
+ * @created 2026-09-26
+ * @author Arthur 'ArTDsL' Dias dos Santos Lasso
+ * @license https://github.com/ArTDsL/LocaliZAZ.js/blob/localizaz.js/LICENSE
+ * 
+ * Disponível gratuitamente no Github: https://github.com/ArTDsL/LocaliZAZ.js
+ * 
+ * @comments 
+ * - p/ compatibilidade IE8 à IE11 utilize as versões anteriores por hora...
+ * - Link v2: https://github.com/ArTDsL/LocaliZAZ.js/tree/2.0.0.0
+ * -
+ * - Será refatorado. Mas da forma que se encontra, está rápido e funcional,
+ * - então é o que eu preciso (no momento kkkkk);
+ * 
+ */
+document.addEventListener('DOMContentLoaded', function(){
+	LZAZ_Init();
+});
+// ----- Globais -----
+const E_LOG = Object.freeze({
+	E_OK: 0,
+	E_ERRO: 1,
+	E_AVISO: 2,
+	E_INFO: 3
+});
+var tamanho_AutoCEP = 8;
+// ----- Inicializador -----
+function LZAZ_Init(){
+	const estados_fields = document.querySelectorAll(".lzaz-estados");
+	const cidades_fields = document.querySelectorAll(".lzaz-cidades");
+	const iata_fields = document.querySelectorAll(".lzaz-iata");
+	const cep_fields = document.querySelectorAll(".lzaz-cep");
+	LZAZ_CheckMascara();
+	if(estados_fields.length == 0){
+		LZAZ_Log(E_LOG.E_AVISO, "Nenhum campo definido para Estado.");
+	}
+	if(cidades_fields.length == 0){
+		LZAZ_Log(E_LOG.E_AVISO, "Nenhum campo definido para Cidade.");
+	}
+	if(estados_fields.length > 0){
+		estados_fields.forEach(cEstado => {
+			if(cEstado.getAttribute('lzaz-id') == null){
+				LZAZ_Log(E_LOG.E_ERRO, "É necessário definir um LZAZ-ID para o campo estado.");
+				throw new Error("LocaliZAZ found an error when executing, check log for mor information...");
+			}
+			for(let i = 0; i < d_estados.length; i++){
+				cEstado.insertAdjacentHTML('beforeend', `<option value="${d_estados[i][1]}"` + ((i == 0) ? ' selected disabled' : '') + `>${d_estados[i][0]}</option>`);
+			}
+			LZAZ_CriaEventMudanca(cEstado, null, null);
+		});
+	}
+	if(cidades_fields.length > 0){
+		cidades_fields.forEach(cCidade => {
+			if(cCidade.getAttribute('lzaz-id') == null){
+				LZAZ_Log(E_LOG.E_ERRO, "É necessário definir um LZAZ-ID para o campo cidade.");
+				throw new Error("LocaliZAZ found an error when executing, check log for mor information...");
+			}
+			LZAZ_CriaEventMudanca(null, cCidade, null);
+			cCidade.insertAdjacentHTML('beforeend', `<option value="" disabled selected>Selecione uma cidade</option>`);
+		});
+	}
+	if(iata_fields.length > 0){
+		iata_fields.forEach(cIATA => {
+			if(cIATA.getAttribute('lzaz-id') == null){
+				LZAZ_Log(E_LOG.E_ERRO, "É necessário definir um LZAZ-ID para o campo de IATA.");
+				throw new Error("LocaliZAZ found an error when executing, check log for mor information...");
+			}
+			cIATA.insertAdjacentHTML('beforeend', `<option value="" disabled selected>Selecione um Aeroporto</option>`);
+		});
+	}
+	if(cep_fields.length > 0){
+		cep_fields.forEach(cCEP => {
+			if(cCEP.getAttribute('lzaz-id') == null){
+				LZAZ_Log(E_LOG.E_ERRO, "É necessário definir um LZAZ-ID para o campo de CEP.");
+				throw new Error("LocaliZAZ found an error when executing, check log for mor information...");
+			}
+			LZAZ_CriaEventMudanca(null, null, cCEP);
+		});
+	}
+	LZAZ_Log(E_LOG.E_OK, "LocaliZAZ Loaded..");
+}
+// ----- Funções Internas -----
+function LZAZ_CriaEventMudanca(...args){
+	/**
+	 * 
+	 * cEstado = Campo Estado
+	 * cCidade = Campo Cidade
+	 * cCEP = Campo CEP
+	 * 
+	 */
+	const [cEstado, cCidade, cCEP] = args;
+	const ibgeEst_fields = document.querySelectorAll(".lzaz-ibge-estado");
+	const ibgeCid_fields = document.querySelectorAll(".lzaz-ibge-cidade");
+	const iataAll_fields = document.querySelectorAll(".lzaz-iata");
+	if(cEstado != null){
+		cEstado.addEventListener('change', function(estadoCmp){
+			const _lzazid = estadoCmp.target.getAttribute('lzaz-id');
+			LZAZ_Log(E_LOG.E_INFO, `Troca de estado detectada no [ LZAZ-ID: ${_lzazid} ] | [ ESTADO (POS): ${estadoCmp.target.selectedIndex} ] | [ ESTADO: ${estadoCmp.target.options[estadoCmp.target.selectedIndex].text} ]`);
+			// Muda Cidades
+			const sel_cidades = document.querySelectorAll(".lzaz-cidades").forEach(eCidade => {
+				if(_lzazid == eCidade.getAttribute('lzaz-id')){
+					LZAZ_Log(E_LOG.E_OK, `Novo estado selecionado [ LZAZ-ID: ${_lzazid} ] | [ ESTADO (POS): ${estadoCmp.target.selectedIndex} ] | [ ESTADO: ${estadoCmp.target.options[estadoCmp.target.selectedIndex].text} ]`);
+					LZAZ_OnEventoMudar(estadoCmp.target, eCidade, null, estadoCmp.target.selectedIndex);
+				}
+			});
+			// IBGE Estado
+			ibgeEst_fields.forEach(IBGEEstado => {
+				if(_lzazid == IBGEEstado.getAttribute("lzaz-id")){
+					LZAZ_Log(E_LOG.E_INFO, `Alterando código ibge do estado no [ LZAZ-ID: ${_lzazid} ] | [ ESTADO (POS): ${estadoCmp.target.selectedIndex} ] | [ ESTADO: ${estadoCmp.target.options[estadoCmp.target.selectedIndex].text} ]`);
+					IBGEEstado.value = d_estados[estadoCmp.target.selectedIndex][2];
+					LZAZ_Log(E_LOG.E_OK, `Código ibge do estado alterado [ LZAZ-ID: ${_lzazid} ] | [ ESTADO (POS): ${estadoCmp.target.selectedIndex} ] | [ ESTADO: ${estadoCmp.target.options[estadoCmp.target.selectedIndex].text} ]`);
+				}
+			});
+			// IATA Estado
+			iataAll_fields.forEach(iataCmp => {
+				if(_lzazid == iataCmp.getAttribute('lzaz-id')){
+					LZAZ_OnEventoMudar(estadoCmp.target, null, iataCmp, estadoCmp.target.selectedIndex);
+				}
+			});
+		});
+	}
+	if(cCidade != null){
+		cCidade.addEventListener('change', function(cidadeCmp){
+			const _lzazid = cidadeCmp.target.getAttribute('lzaz-id');
+			LZAZ_Log(E_LOG.E_INFO, `Troca de cidade detectada no [ LZAZ-ID: ${_lzazid} ] | [ CIDADE (POS): ${cidadeCmp.target.selectedIndex} ] | [ CIDADE: ${cidadeCmp.target.options[cidadeCmp.target.selectedIndex].text} ]`);
+			// IBGE Cidade
+			ibgeCid_fields.forEach(IBGECidade => {
+				if(_lzazid == IBGECidade.getAttribute("lzaz-id")){
+					LZAZ_Log(E_LOG.E_OK, `Nova cidade selecionada [ LZAZ-ID: ${_lzazid} ] | [ CIDADE (POS): ${cidadeCmp.target.selectedIndex} ] | [ CIDADE: ${cidadeCmp.target.options[cidadeCmp.target.selectedIndex].text} ]`);
+					document.querySelectorAll(".lzaz-estados").forEach(estadoCmp => {
+						if(_lzazid == estadoCmp.getAttribute('lzaz-id')){
+							LZAZ_Log(E_LOG.E_INFO, `Alterando código ibge da cidade no [ LZAZ-ID: ${_lzazid} ] | [ ESTADO (POS): ${estadoCmp.selectedIndex} ] | [ ESTADO: ${d_estados[estadoCmp.selectedIndex][0]} ] | [ CIDADE (POS): ${cidadeCmp.target.selectedIndex} ] | [ CIDADE: ${cidadeCmp.target.options[cidadeCmp.target.selectedIndex].text} ]`);
+							IBGECidade.value = d_codibge[estadoCmp.selectedIndex][(cidadeCmp.target.selectedIndex - 1)];
+							LZAZ_Log(E_LOG.E_OK, `Código ibge da cidade alterado [ LZAZ-ID: ${_lzazid} ] | [ ESTADO (POS): ${estadoCmp.selectedIndex} ] | [ ESTADO: ${d_estados[estadoCmp.selectedIndex][0]} ] | [ CIDADE (POS): ${cidadeCmp.target.selectedIndex} ] | [ CIDADE: ${cidadeCmp.target.options[cidadeCmp.target.selectedIndex].text} ]`);
+						}
+					});
+				}
+			});
+			//IATA Cidade
+			iataAll_fields.forEach(iataCmp => {
+				if(_lzazid == iataCmp.getAttribute("lzaz-id")){
+					LZAZ_Log(E_LOG.E_INFO, `Alterando IATA (Cód. Aeroportos) da cidade selecionada [ LZAZ-ID: ${_lzazid} ] | [ CIDADE (POS): ${(cidadeCmp.target.selectedIndex - 1)} ] | [ CIDADE: ${cidadeCmp.target.options[cidadeCmp.target.selectedIndex].text} ]`);
+					document.querySelectorAll(".lzaz-estados").forEach(estadoCmp => {
+						if(_lzazid == estadoCmp.getAttribute('lzaz-id')){
+							LZAZ_LimparInputs(-1, -1, -1, -1, _lzazgrp_id);
+							iataCmp.insertAdjacentHTML('beforeend', `<option value="" disabled selected>Selecione um Aeroporto</option>`);
+							for(let i = 0; i < d_iata[estadoCmp.selectedIndex].length; i++){
+								if(d_iata[estadoCmp.selectedIndex][i][0] == d_cidades[estadoCmp.selectedIndex][(cidadeCmp.target.selectedIndex - 1)]){
+									iataCmp.insertAdjacentHTML('beforeend', `<option value="` + ((i == -1) ? '' : d_iata[estadoCmp.selectedIndex][i][2]) + '"' + ((i == -1) ? ' selected disabled' : '') + '>' + ((i == -1) ? d_iata[0][0][0] : `${d_iata[estadoCmp.selectedIndex][i][1]} (${d_iata[estadoCmp.selectedIndex][i][2]})`) + `</option>`);
+								}
+							}
+							LZAZ_Log(E_LOG.E_OK, `IATA (Cód. Aeroportos) da cidade selecionada alterados [ LZAZ-ID: ${_lzazid} ] | [ CIDADE (POS): ${(cidadeCmp.target.selectedIndex - 1)} ] | [ CIDADE: ${cidadeCmp.target.options[cidadeCmp.target.selectedIndex].text} ]`);
+						}
+					});
+				}
+			});
+		});
+	}
+	if(cCEP != null){
+		cCEP.addEventListener('keyup', function(cepCmp){
+			if(cepCmp.target.value.length >= tamanho_AutoCEP){
+				LZAZ_Log(E_LOG.E_INFO, `Solicitando dados do CEP para o ViaCEP...`);
+				LZAZ_ViaCEP(cepCmp.target.getAttribute('lzaz-id'));
+				LZAZ_Log(E_LOG.E_OK, `Requisição para o ViaCEP encerrada.`);
+			}
+		});
+	}
+}
+function LZAZ_OnEventoMudar(...args){
+	/**
+	 * 
+	 * cEstado = Campo Estado
+	 * cCidade = Campo Cidade
+	 * iEstado = Index Estado
+	 *
+	 */
+	const [cEstado, cCidade, cIATA, iEstado] = args;
+	//Muda cidades
+	if(cCidade != null && iEstado != null){
+		_lzazgrp_id = cCidade.getAttribute('lzaz-id');
+		LZAZ_LimparInputs(-1, _lzazgrp_id, _lzazgrp_id, _lzazgrp_id);
+		LZAZ_Log(E_LOG.E_INFO, `Carregando cidades: [ LZAZ-ID: ${cCidade.getAttribute('lzaz-id')} ]`);
+		for(let i = -1; i < d_cidades[iEstado].length; i++){
+			cCidade.insertAdjacentHTML('beforeend', `<option value="` + ((i == -1) ? '' : d_cidades[iEstado][i]) + '"' + ((i == -1) ? ' selected disabled' : '') + '>' + ((i == -1) ? d_cidades[0][0] : d_cidades[iEstado][i]) + `</option>`);
 		}
-		//cidades
-		document.getElementById(cidade_box).innerHTML += ('<option value="' + cidades[0][1] + '">' + cidades[0][0] + '</option>');
-		//log
-		console.log('[JS] LocaliZaZ - v2.0.0.0 :: STATUS [CARREGADO]');
-	}else{
-		console.error('[JS] LocaliZaZ - v2.0.0.0 :: STATUS [ERRO: Houve um erro ao carregar as SelectBoxes, verifique o ID das mesmas]');
+		LZAZ_Log(E_LOG.E_OK, `Cidades carregadas: [ LZAZ-ID: ${cCidade.getAttribute('lzaz-id')} ] | [ ESTADO: ${d_estados[iEstado][0]} ] | [ ID ESTADO: ${iEstado} ]`);
 	}
-};
-//------- SELECIONA ---
-function muda_estado(){
-//Selecionar cidades do estado
-	document.getElementById(cidade_box).innerHTML = ''; //limpa a cidade
-	let estado_selecionado = document.getElementById(estado_box).selectedIndex;
-	let cidade_selecionada = document.getElementById(cidade_box).selectedIndex;
-	document.getElementById(ibge_estado_inp).value = estados[estado_selecionado][2];//Códigos do IBGE - Estado
-	document.getElementById(ibge_cidade_inp).value = cod_ibge_cidades[estado_selecionado][cidade_selecionada];//Códigos do IBGE - Cidades
-	//cidades
-	for(var cid in cidades[estado_selecionado]){
-		let c = document.createElement("option");
-		c.text = cidades[estado_selecionado][cid];
-		c.value = cidades[estado_selecionado][cid];
-		document.getElementById(cidade_box).appendChild(c);
+	if(cIATA != null && iEstado != null){
+		_lzazgrp_id = cIATA.getAttribute('lzaz-id');
+		LZAZ_LimparInputs(-1, -1, -1, -1, _lzazgrp_id);
+		LZAZ_Log(E_LOG.E_INFO, `Carregando Códigos de Aerporto IATA baseado no Estado atual: [ LZAZ-ID: ${_lzazgrp_id} ]`);
+		for(let i = -1; i < d_iata[iEstado].length; i++){
+			cIATA.insertAdjacentHTML('beforeend', `<option value="` + ((i == -1) ? '' : d_iata[iEstado][i][2]) + '"' + ((i == -1) ? ' selected disabled' : '') + '>' + ((i == -1) ? d_iata[0][0] : `${d_iata[iEstado][i][1]} (${d_iata[iEstado][i][2]})`) + `</option>`);
+		}
+		LZAZ_Log(E_LOG.E_OK, `Códigos de Aerporto IATA baseado no Estado atual Carregados: [ LZAZ-ID: ${_lzazgrp_id} ] | [ ESTADO: ${d_estados[iEstado][0]} ] | [ ID ESTADO: ${iEstado} ]`);
 	}
-	//aeros
-	for(var iata in cod_iata[estado_selecionado]){
-		let iat = document.createElement("option");
-		iat.text = cod_iata[estado_selecionado][iata][1] + " - " + cod_iata[estado_selecionado][iata][2];
-		iat.value = cod_iata[estado_selecionado][iata][2];
-		document.getElementById(iata_aeroportos).appendChild(iat);
+}
+function LZAZ_LimparInputs(estados, cidades, ibgeestado, ibgecidade, iata){
+	const estados_fields = document.querySelectorAll(".lzaz-estados");
+	const cidades_fields = document.querySelectorAll(".lzaz-cidades");
+	const ibgeEst_fields = document.querySelectorAll(".lzaz-ibge-estado");
+	const ibgeCid_fields = document.querySelectorAll(".lzaz-ibge-cidade");
+	const iata_fields = document.querySelectorAll(".lzaz-iata");
+	//
+	if(estados != -1){
+		estados_fields.forEach(estadoCmp => {
+			if(estadoCmp.getAttribute("lzaz-id") == estados){
+				LZAZ_Log(E_LOG.E_INFO, `Limpando estados antigos: [ LZAZ-ID: ${estados} ]`);
+				for(i = (estadoCmp.options.length - 1); i >= 0; i--){
+					estadoCmp.remove(i);
+				}
+				LZAZ_Log(E_LOG.E_OK, `Limpeza de estados antigos concluída: [ LZAZ-ID: ${estados} ]`);
+			}
+		});
 	}
-
-};
-function muda_cidade(){
-//Selecionar Códigos IBGE do município
-	document.getElementById(iata_aeroportos).innerHTML = ''; //limpa IATA Aeroportos
-	let estado_selecionado = document.getElementById(estado_box).selectedIndex;
-	let cidade_selecionada = document.getElementById(cidade_box).selectedIndex;
-	document.getElementById(ibge_cidade_inp).value = cod_ibge_cidades[estado_selecionado][cidade_selecionada];//Códigos do IBGE - Cidades
-	for(var iata in cod_iata[estado_selecionado]){
-		let iat = document.createElement("option");
-		iat.text = cod_iata[estado_selecionado][iata][1] + " - " + cod_iata[estado_selecionado][iata][2];
-		iat.value = cod_iata[estado_selecionado][iata][2];
-		if(cod_iata[estado_selecionado][iata][0] == document.getElementById(cidade_box).value){
-			console.log(cod_iata[estado_selecionado][iata][0]);
-			document.getElementById(iata_aeroportos).appendChild(iat);
+	if(cidades != -1){
+		cidades_fields.forEach(cidadeCmp => {
+			if(cidadeCmp.getAttribute("lzaz-id") == cidades){
+				LZAZ_Log(E_LOG.E_INFO, `Limpando cidades antigas: [ LZAZ-ID: ${cidades} ]`);
+				for(i = (cidadeCmp.options.length - 1); i >= 0; i--){
+					cidadeCmp.remove(i);
+				}
+				LZAZ_Log(E_LOG.E_OK, `Limpeza de cidades antigas concluída: [ LZAZ-ID: ${cidades} ]`);
+			}
+		});
+	}
+	if(ibgeestado != -1){
+		ibgeEst_fields.forEach(IBGEEstado => {
+			if(IBGEEstado.getAttribute("lzaz-id") == ibgeestado){
+				LZAZ_Log(E_LOG.E_INFO, `Limpando Código IBGE de Estado (antigo): [ LZAZ-ID: ${ibgeestado} ]`);
+				IBGEEstado.value = null;
+				LZAZ_Log(E_LOG.E_OK, `Limpeza de Código IBGE de Estado concluída: [ LZAZ-ID: ${ibgeestado} ]`);
+			}
+		});
+	}
+	if(iata_fields != -1){
+		iata_fields.forEach(IATACod => {
+			if(IATACod.getAttribute("lzaz-id") == iata){
+				LZAZ_Log(E_LOG.E_INFO, `Limpando Códigos de Aeroportos (IATA) (antigo): [ LZAZ-ID: ${iata} ]`);
+				for(i = (IATACod.options.length - 1); i >= 0; i--){
+					IATACod.remove(i);
+				}
+				LZAZ_Log(E_LOG.E_OK, `Limpeza de Códigos de Aeroportos (IATA) concluída: [ LZAZ-ID: ${iata} ]`);
+			}
+		});
+	}
+}
+var check_log_disabling = false;
+var is_log_disabled = false;
+function LZAZ_Log(tipo, mensagem){
+	if(!check_log_disabling){
+		var comentarios = getComments(document.body);
+		for(let idc in comentarios){
+			if(String(comentarios[idc].data).trim() == "LZAZ:DISABLELOG"){
+				is_log_disabled = true;
+				break;
+			}
+		};
+		check_log_disabling = true;
+	}
+	if(!is_log_disabled){
+		const data = new Date();
+		let fData = {
+			"dia": data.getDate(),
+			"mes": String(data.getMonth() + 1).padStart(2, "0"),
+			"ano": data.getFullYear(),
+			"hora": data.getHours(),
+			"min": data.getMinutes(),
+			"seg": String(data.getSeconds()).padStart(2, "0")
+		};
+		//
+		let info = `[ LocaliZAZ | ${fData["dia"]}/${fData["mes"]}/${fData["ano"]} ${fData["hora"]}:${fData["min"]}:${fData["seg"]}]`;
+		let log_cor = '';
+		let log_tipo = '';
+		switch(tipo){
+			case 0:{
+				log_cor = 'color: limegreen;';
+				log_tipo = 'OK';
+				break;
+			}
+			case 1:{
+				log_cor = 'color: red;';
+				log_tipo = 'ERRO';
+				break;
+			}
+			case 2:{
+				log_cor = 'color: darkorange;';
+				log_tipo = 'AVISO';
+				break;
+			}
+			case 3:{
+				log_cor = 'color: skyblue;';
+				log_tipo = 'INFO';
+				break;
+			}
+			default:{
+				return;
+			}
+		}
+		return console.log(`%c${info} - (%c${log_tipo}%c) :: %c${mensagem}`, 'color: default;', log_cor, 'color: default;', log_cor);
+	}
+}
+function LZAZ_ViaCEP(lzazId){
+	const viacepCEPInput = document.querySelectorAll('.lzaz-cep');
+	const viacepRecvElem = document.querySelectorAll('[lzaz-vcepdata]');
+	var _cacheEstado = [];
+	//
+	viacepCEPInput.forEach(cepInput => {
+		if(cepInput.getAttribute('lzaz-id') == lzazId && cepInput.getAttribute('lzaz-viacep') == 'on'){
+			let request = new XMLHttpRequest();
+			request.open('GET', `https://viacep.com.br/ws/${cepInput.value}/json/`, true);
+			request.responseType = "json";
+			request.overrideMimeType("application/json");
+			request.onloadend = function() {
+				let retorno = JSON.parse(JSON.stringify(request.response));
+				if(this.status != 200 && this.status != 202){
+					return LZAZ_Log(E_LOG.E_ERRO, `Via CEP retornou um erro, não foi possível realizar a requisição...`);
+				}
+				for(let i = 0; i < viacepRecvElem.length; i++){
+					if(lzazId == viacepRecvElem[i].getAttribute('lzaz-id')){
+						const recv_key = viacepRecvElem[i].getAttribute('lzaz-vcepdata');
+						if('value' in viacepRecvElem[i]){
+							if(viacepRecvElem[i].tagName == "SELECT"){
+								if(recv_key == 'estado' && viacepRecvElem[i].selectedIndex == 0){
+									for(let j = 0; j < viacepRecvElem[i].options.length; j++){
+										if(viacepRecvElem[i].options[j].text == retorno[recv_key]){
+											viacepRecvElem[i].options[j].value = j;
+											viacepRecvElem[i].options[j].selected = true;
+											_cacheEstado = [i, j];
+										}
+									}
+								}
+								if(recv_key == 'localidade' && viacepRecvElem[i].selectedIndex == 0){
+									LZAZ_OnEventoMudar(viacepRecvElem[_cacheEstado[0]], viacepRecvElem[i], null, _cacheEstado[1]);
+									setTimeout(function(){
+										for(let j = 0; j < viacepRecvElem[i].options.length; j++){
+											if(viacepRecvElem[i].options[j].text == retorno[recv_key]){
+												viacepRecvElem[i].options[j].value = j;
+												viacepRecvElem[i].options[j].selected = true;
+											}
+										}
+									}, 50); // Rec. deixar o timeout p/ carregar os dados - ArT
+								}
+							}else{
+								viacepRecvElem[i].value = retorno[recv_key];
+							}
+						}else{
+							//console.log("INNERHTML: " + viacepRecvElem[i]);
+							viacepRecvElem[i].innerHTML = retorno[recv_key];
+						}
+						LZAZ_Log(E_LOG.E_OK, `Alteração processada vinda do ViaCEP: "${recv_key}"`);
+					}
+				}
+			};
+			request.send(null);
+		}
+	});
+}
+// ----- Camadas de compatibilidade -----
+// Polyfill 'getComments'
+// Polyfill 'getComments' has  been  made using an answer in StackOverflow by the following
+// authors: @/697154/yoshi, @/31443802/danaemon, @/603003/comfreek - Thank you all ♥ - ArT
+function getComments(elem){
+	if(!Node){
+		var Node = {};
+	}
+	if(!Node.COMMENT_NODE){
+		Node.COMMENT_NODE = 8;
+	}
+	let children = elem.childNodes;
+	let commentarios = [];
+	for(var i=0, len=children.length; i<len; i++){
+		if(children[i].nodeType == Node.COMMENT_NODE){
+			commentarios.push(children[i]);
 		}
 	}
-};
-function buscaDadosCEP(){
-	var request = new XMLHttpRequest();
-	
-	//url para get request direta, atilizando a API do VIACEP, processo feito em XHR para suporte a navegadores IE8+
-	request.open('GET', 'https://viacep.com.br/ws/'+codpostal_input.value+'/json/', true);
-	request.responseType = "json"; // suporte para navegadores mais novos.
-	request.overrideMimeType("application/json"); // suporte para navegadores antigos. (IE 11 -)
-	request.onloadend = function() {
-		var retorno = JSON.parse(JSON.stringify(request.response));
-
-	    //---- Seleciona opções derivadas ---- (DESCOMENTE PARA UTILIZAR)
-	    /* document.getElementById(estado_box).value = retorno.uf;
-	    muda_estado();//executa mudança de estado
-	    document.getElementById(cidade_box).value = retorno.localidade;
-	    muda_cidade();//executa mudança de cidade */
-	    //------------------------------------
-
-	    
-
-	    // _________PROGRAME___AQUI___O___DESTINO___DOS___DADOS___RECEBIDOS_________ //
-
-	    
-
-	    /*	--------------------------
-			Você pode obter outros dados utilizando outros Objetos do JSON retornado:
-			--------------------------
-			- retorno.logradouro: Endereço do CEP digitado,
-			- retorno.bairro: Bairro do CEP digitado,
-			- retorno.cep: CEP formatado contendo apenas números e traço,
-			- retorno.complemento: Complemento do CEP digitado (Endereço),
-			- retorno.localidade: Cidade do CEP digitado,
-			- retorno.uf: Estado do CEP digitado,
-			- retorno.ibge: Código do IBGE referente a Cidade,
-			- retorno.gia: GIA/ICMS da cidade/região onde se localiza o CEP,
-			- retorno.ddd: DDD da cidade/região onde se localiza o CEP,
-			- retorno.siafi: Código da Cidade S.I.A.F.I (Sistema Integrado de Administração Financeira) da cidade/região onde se localiza o CEP.
-	    */
-	};
-
-	request.send();
-};
-//------- DADOS -------
-//ESTADOS [27] [nome, sigla, codigo ibge]
-var estados = ([['Selecione um Estado', '', ''],//ok
+	return commentarios;
+}
+// ----- Configurações -----
+// Máscara tem CEP
+function LZAZ_CheckMascara(){
+var comentarios = getComments(document.body);
+	for(let idc in comentarios){
+		if(String(comentarios[idc].data).trim() == "LZAZ:MASKED_CEP"){
+			tamanho_AutoCEP = 9;
+			break;
+		}
+	}
+}
+//
+// ----- Dados -----
+var d_estados = ([['Selecione um Estado', '', ''],//ok
 			  ['Acre', 'AC', '12'],//ok
 			  ['Alagoas', 'AL', '27'],//ok
 			  ['Amapá', 'AP', '16'],//ok
@@ -148,9 +425,7 @@ var estados = ([['Selecione um Estado', '', ''],//ok
 			  ['São Paulo', 'SP', '35'],//ok
 			  ['Sergipe', 'SE', '28'],//ok
 			  ['Tocantins', 'TO', '17']]);//ok
-			  
-//CIDADES[3000+]
-var cidades = /*0.Aviso*/			([["Selecione uma cidade"],
+var d_cidades = /*0.Aviso*/			([["Selecione uma cidade"],
 			  /*1.Acre*/			["Acrelândia","Assis Brasil","Brasiléia","Bujari","Capixaba","Cruzeiro do Sul","Epitaciolândia","Feijó","Jordão","Mâncio Lima","Manoel Urbano","Marechal Thaumaturgo","Plácido de Castro","Porto Acre","Porto Walter","Rio Branco","Rodrigues Alves","Santa Rosa do Purus","Sena Madureira","Senador Guiomard","Tarauacá","Xapuri"],
 			  /*2.Alagoas*/			["Água Branca","Anadia","Arapiraca","Atalaia","Barra de Santo Antônio","Barra de São Miguel","Batalha","Belém","Belo Monte","Boca da Mata","Branquinha","Cacimbinhas","Cajueiro","Campestre","Campo Alegre","Campo Grande","Canapi","Capela","Carneiros","Chã Preta","Coité do Nóia","Colônia Leopoldina","Coqueiro Seco","Coruripe","Craíbas","Delmiro Gouveia","Dois Riachos","Estrela de Alagoas","Feira Grande","Feliz Deserto","Flexeiras","Girau do Ponciano","Ibateguara","Igaci","Igreja Nova","Inhapi","Jacaré dos Homens","Jacuípe","Japaratinga","Jaramataia","Jequiá da Praia","Joaquim Gomes","Jundiá","Junqueiro","Lagoa da Canoa","Limoeiro de Anadia","Maceió","Major Isidoro","Mar Vermelho","Maragogi","Maravilha","Marechal Deodoro","Maribondo","Mata Grande","Matriz de Camaragibe","Messias","Minador do Negrão","Monteirópolis","Murici","Novo Lino","Olho d'Água das Flores","Olho d'Água do Casado","Olho d'Água Grande","Olivença","Ouro Branco","Palestina","Palmeira dos Índios","Pão de Açúcar","Pariconha","Paripueira","Passo de Camaragibe","Paulo Jacinto","Penedo","Piaçabuçu","Pilar","Pindoba","Piranhas","Poço das Trincheiras","Porto Calvo","Porto de Pedras","Porto Real do Colégio","Quebrangulo","Rio Largo","Roteiro","Santa Luzia do Norte","Santana do Ipanema","Santana do Mundaú","São Brás","São José da Laje","São José da Tapera","São Luís do Quitunde","São Miguel dos Campos","São Miguel dos Milagres","São Sebastião","Satuba","Senador Rui Palmeira","Tanque d'Arca","Taquarana","Teotônio Vilela","Traipu","União dos Palmares","Viçosa"],
 			  /*3.Amapá*/			["Amapá","Calçoene","Cutias","Ferreira Gomes","Itaubal","Laranjal do Jari","Macapá","Mazagão","Oiapoque","Pedra Branca do Amapari","Porto Grande","Pracuúba","Santana","Serra do Navio","Tartarugalzinho","Vitória do Jari"],
@@ -178,9 +453,7 @@ var cidades = /*0.Aviso*/			([["Selecione uma cidade"],
 			  /*25.São Paulo*/		["Adamantina","Adolfo","Aguaí","Águas da Prata","Águas de Lindóia","Águas de Santa Bárbara","Águas de São Pedro","Agudos","Alambari","Alfredo Marcondes","Altair","Altinópolis","Alto Alegre","Alumínio","Álvares Florence","Álvares Machado","Álvaro de Carvalho","Alvinlândia","Americana","Américo Brasiliense","Américo de Campos","Amparo","Analândia","Andradina","Angatuba","Anhembi","Anhumas","Aparecida","Aparecida d'Oeste","Apiaí","Araçariguama","Araçatuba","Araçoiaba da Serra","Aramina","Arandu","Arapeí","Araraquara","Araras","Arco-Íris","Arealva","Areias","Areiópolis","Ariranha","Artur Nogueira","Arujá","Aspásia","Assis","Atibaia","Auriflama","Avaí","Avanhandava","Avaré","Bady Bassitt","Balbinos","Bálsamo","Bananal","Barão de Antonina","Barbosa","Bariri","Barra Bonita","Barra do Chapéu","Barra do Turvo","Barretos","Barrinha","Barueri","Bastos","Batatais","Bauru","Bebedouro","Bento de Abreu","Bernardino de Campos","Bertioga","Bilac","Birigui","Biritiba Mirim","Boa Esperança do Sul","Bocaina","Bofete","Boituva","Bom Jesus dos Perdões","Bom Sucesso de Itararé","Borá","Boracéia","Borborema","Borebi","Botucatu","Bragança Paulista","Braúna","Brejo Alegre","Brodowski","Brotas","Buri","Buritama","Buritizal","Cabrália Paulista","Cabreúva","Caçapava","Cachoeira Paulista","Caconde","Cafelândia","Caiabu","Caieiras","Caiuá","Cajamar","Cajati","Cajobi","Cajuru","Campina do Monte Alegre","Campinas","Campo Limpo Paulista","Campos do Jordão","Campos Novos Paulista","Cananéia","Canas","Cândido Mota","Cândido Rodrigues","Canitar","Capão Bonito","Capela do Alto","Capivari","Caraguatatuba","Carapicuíba","Cardoso","Casa Branca","Cássia dos Coqueiros","Castilho","Catanduva","Catiguá","Cedral","Cerqueira César","Cerquilho","Cesário Lange","Charqueada","Chavantes","Clementina","Colina","Colômbia","Conchal","Conchas","Cordeirópolis","Coroados","Coronel Macedo","Corumbataí","Cosmópolis","Cosmorama","Cotia","Cravinhos","Cristais Paulista","Cruzália","Cruzeiro","Cubatão","Cunha","Descalvado","Diadema","Dirce Reis","Divinolândia","Dobrada","Dois Córregos","Dolcinópolis","Dourado","Dracena","Duartina","Dumont","Echaporã","Eldorado","Elias Fausto","Elisiário","Embaúba","Embu das Artes","Embu-Guaçu","Emilianópolis","Engenheiro Coelho","Espírito Santo do Pinhal","Espírito Santo do Turvo","Estiva Gerbi","Estrela do Norte","Estrela d'Oeste","Euclides da Cunha Paulista","Fartura","Fernando Prestes","Fernandópolis","Fernão","Ferraz de Vasconcelos","Flora Rica","Floreal","Flórida Paulista","Florínea","Franca","Francisco Morato","Franco da Rocha","Gabriel Monteiro","Gália","Garça","Gastão Vidigal","Gavião Peixoto","General Salgado","Getulina","Glicério","Guaiçara","Guaimbê","Guaíra","Guapiaçu","Guapiara","Guará","Guaraçaí","Guaraci","Guarani d'Oeste","Guarantã","Guararapes","Guararema","Guaratinguetá","Guareí","Guariba","Guarujá","Guarulhos","Guatapará","Guzolândia","Herculândia","Holambra","Hortolândia","Iacanga","Iacri","Iaras","Ibaté","Ibirá","Ibirarema","Ibitinga","Ibiúna","Icém","Iepê","Igaraçu do Tietê","Igarapava","Igaratá","Iguape","Ilha Comprida","Ilha Solteira","Ilhabela","Indaiatuba","Indiana","Indiaporã","Inúbia Paulista","Ipaussu","Iperó","Ipeúna","Ipiguá","Iporanga","Ipuã","Iracemápolis","Irapuã","Irapuru","Itaberá","Itaí","Itajobi","Itaju","Itanhaém","Itaoca","Itapecerica da Serra","Itapetininga","Itapeva","Itapevi","Itapira","Itapirapuã Paulista","Itápolis","Itaporanga","Itapuí","Itapura","Itaquaquecetuba","Itararé","Itariri","Itatiba","Itatinga","Itirapina","Itirapuã","Itobi","Itu","Itupeva","Ituverava","Jaborandi","Jaboticabal","Jacareí","Jaci","Jacupiranga","Jaguariúna","Jales","Jambeiro","Jandira","Jardinópolis","Jarinu","Jaú","Jeriquara","Joanópolis","João Ramalho","José Bonifácio","Júlio Mesquita","Jumirim","Jundiaí","Junqueirópolis","Juquiá","Juquitiba","Lagoinha","Laranjal Paulista","Lavínia","Lavrinhas","Leme","Lençóis Paulista","Limeira","Lindóia","Lins","Lorena","Lourdes","Louveira","Lucélia","Lucianópolis","Luís Antônio","Luiziânia","Lupércio","Lutécia","Macatuba","Macaubal","Macedônia","Magda","Mairinque","Mairiporã","Manduri","Marabá Paulista","Maracaí","Marapoama","Mariápolis","Marília","Marinópolis","Martinópolis","Matão","Mauá","Mendonça","Meridiano","Mesópolis","Miguelópolis","Mineiros do Tietê","Mira Estrela","Miracatu","Mirandópolis","Mirante do Paranapanema","Mirassol","Mirassolândia","Mococa","Mogi das Cruzes","Mogi Guaçu","Mogi Mirim","Mombuca","Monções","Mongaguá","Monte Alegre do Sul","Monte Alto","Monte Aprazível","Monte Azul Paulista","Monte Castelo","Monte Mor","Monteiro Lobato","Morro Agudo","Morungaba","Motuca","Murutinga do Sul","Nantes","Narandiba","Natividade da Serra","Nazaré Paulista","Neves Paulista","Nhandeara","Nipoã","Nova Aliança","Nova Campina","Nova Canaã Paulista","Nova Castilho","Nova Europa","Nova Granada","Nova Guataporanga","Nova Independência","Nova Luzitânia","Nova Odessa","Novais","Novo Horizonte","Nuporanga","Ocauçu","Óleo","Olímpia","Onda Verde","Oriente","Orindiúva","Orlândia","Osasco","Oscar Bressane","Osvaldo Cruz","Ourinhos","Ouro Verde","Ouroeste","Pacaembu","Palestina","Palmares Paulista","Palmeira d'Oeste","Palmital","Panorama","Paraguaçu Paulista","Paraibuna","Paraíso","Paranapanema","Paranapuã","Parapuã","Pardinho","Pariquera-Açu","Parisi","Patrocínio Paulista","Paulicéia","Paulínia","Paulistânia","Paulo de Faria","Pederneiras","Pedra Bela","Pedranópolis","Pedregulho","Pedreira","Pedrinhas Paulista","Pedro de Toledo","Penápolis","Pereira Barreto","Pereiras","Peruíbe","Piacatu","Piedade","Pilar do Sul","Pindamonhangaba","Pindorama","Pinhalzinho","Piquerobi","Piquete","Piracaia","Piracicaba","Piraju","Pirajuí","Pirangi","Pirapora do Bom Jesus","Pirapozinho","Pirassununga","Piratininga","Pitangueiras","Planalto","Platina","Poá","Poloni","Pompéia","Pongaí","Pontal","Pontalinda","Pontes Gestal","Populina","Porangaba","Porto Feliz","Porto Ferreira","Potim","Potirendaba","Pracinha","Pradópolis","Praia Grande","Pratânia","Presidente Alves","Presidente Bernardes","Presidente Epitácio","Presidente Prudente","Presidente Venceslau","Promissão","Quadra","Quatá","Queiroz","Queluz","Quintana","Rafard","Rancharia","Redenção da Serra","Regente Feijó","Reginópolis","Registro","Restinga","Ribeira","Ribeirão Bonito","Ribeirão Branco","Ribeirão Corrente","Ribeirão do Sul","Ribeirão dos Índios","Ribeirão Grande","Ribeirão Pires","Ribeirão Preto","Rifaina","Rincão","Rinópolis","Rio Claro","Rio das Pedras","Rio Grande da Serra","Riolândia","Riversul","Rosana","Roseira","Rubiácea","Rubinéia","Sabino","Sagres","Sales","Sales Oliveira","Salesópolis","Salmourão","Saltinho","Salto","Salto de Pirapora","Salto Grande","Sandovalina","Santa Adélia","Santa Albertina","Santa Bárbara d'Oeste","Santa Branca","Santa Clara d'Oeste","Santa Cruz da Conceição","Santa Cruz da Esperança","Santa Cruz das Palmeiras","Santa Cruz do Rio Pardo","Santa Ernestina","Santa Fé do Sul","Santa Gertrudes","Santa Isabel","Santa Lúcia","Santa Maria da Serra","Santa Mercedes","Santa Rita do Passa Quatro","Santa Rita d'Oeste","Santa Rosa de Viterbo","Santa Salete","Santana da Ponte Pensa","Santana de Parnaíba","Santo Anastácio","Santo André","Santo Antônio da Alegria","Santo Antônio de Posse","Santo Antônio do Aracanguá","Santo Antônio do Jardim","Santo Antônio do Pinhal","Santo Expedito","Santópolis do Aguapeí","Santos","São Bento do Sapucaí","São Bernardo do Campo","São Caetano do Sul","São Carlos","São Francisco","São João da Boa Vista","São João das Duas Pontes","São João de Iracema","São João do Pau d'Alho","São Joaquim da Barra","São José da Bela Vista","São José do Barreiro","São José do Rio Pardo","São José do Rio Preto","São José dos Campos","São Lourenço da Serra","São Luiz do Paraitinga","São Manuel","São Miguel Arcanjo","São Paulo","São Pedro","São Pedro do Turvo","São Roque","São Sebastião","São Sebastião da Grama","São Simão","São Vicente","Sarapuí","Sarutaiá","Sebastianópolis do Sul","Serra Azul","Serra Negra","Serrana","Sertãozinho","Sete Barras","Severínia","Silveiras","Socorro","Sorocaba","Sud Mennucci","Sumaré","Suzanápolis","Suzano","Tabapuã","Tabatinga","Taboão da Serra","Taciba","Taguaí","Taiaçu","Taiúva","Tambaú","Tanabi","Tapiraí","Tapiratiba","Taquaral","Taquaritinga","Taquarituba","Taquarivaí","Tarabai","Tarumã","Tatuí","Taubaté","Tejupá","Teodoro Sampaio","Terra Roxa","Tietê","Timburi","Torre de Pedra","Torrinha","Trabiju","Tremembé","Três Fronteiras","Tuiuti","Tupã","Tupi Paulista","Turiúba","Turmalina","Ubarana","Ubatuba","Ubirajara","Uchoa","União Paulista","Urânia","Uru","Urupês","Valentim Gentil","Valinhos","Valparaíso","Vargem","Vargem Grande do Sul","Vargem Grande Paulista","Várzea Paulista","Vera Cruz","Vinhedo","Viradouro","Vista Alegre do Alto","Vitória Brasil","Votorantim","Votuporanga","Zacarias"],
 			  /*26.Sergipe*/		["Amparo de São Francisco","Aquidabã","Aracaju","Arauá","Areia Branca","Barra dos Coqueiros","Boquim","Brejo Grande","Campo do Brito","Canhoba","Canindé de São Francisco","Capela","Carira","Carmópolis","Cedro de São João","Cristinápolis","Cumbe","Divina Pastora","Estância","Feira Nova","Frei Paulo","Gararu","General Maynard","Gracho Cardoso","Ilha das Flores","Indiaroba","Itabaiana","Itabaianinha","Itabi","Itaporanga d'Ajuda","Japaratuba","Japoatã","Lagarto","Laranjeiras","Macambira","Malhada dos Bois","Malhador","Maruim","Moita Bonita","Monte Alegre de Sergipe","Muribeca","Neópolis","Nossa Senhora Aparecida","Nossa Senhora da Glória","Nossa Senhora das Dores","Nossa Senhora de Lourdes","Nossa Senhora do Socorro","Pacatuba","Pedra Mole","Pedrinhas","Pinhão","Pirambu","Poço Redondo","Poço Verde","Porto da Folha","Propriá","Riachão do Dantas","Riachuelo","Ribeirópolis","Rosário do Catete","Salgado","Santa Luzia do Itanhy","Santa Rosa de Lima","Santana do São Francisco","Santo Amaro das Brotas","São Cristóvão","São Domingos","São Francisco","São Miguel do Aleixo","Simão Dias","Siriri","Telha","Tobias Barreto","Tomar do Geru","Umbaúba"],
 			  /*27.Tocantins*/		["Abreulândia","Aguiarnópolis","Aliança do Tocantins","Almas","Alvorada","Ananás","Angico","Aparecida do Rio Negro","Aragominas","Araguacema","Araguaçu","Araguaína","Araguanã","Araguatins","Arapoema","Arraias","Augustinópolis","Aurora do Tocantins","Axixá do Tocantins","Babaçulândia","Bandeirantes do Tocantins","Barra do Ouro","Barrolândia","Bernardo Sayão","Bom Jesus do Tocantins","Brasilândia do Tocantins","Brejinho de Nazaré","Buriti do Tocantins","Cachoeirinha","Campos Lindos","Cariri do Tocantins","Carmolândia","Carrasco Bonito","Caseara","Centenário","Chapada da Natividade","Chapada de Areia","Colinas do Tocantins","Colméia","Combinado","Conceição do Tocantins","Couto Magalhães","Cristalândia","Crixás do Tocantins","Darcinópolis","Dianópolis","Divinópolis do Tocantins","Dois Irmãos do Tocantins","Dueré","Esperantina","Fátima","Figueirópolis","Filadélfia","Formoso do Araguaia","Fortaleza do Tabocão","Goianorte","Goiatins","Guaraí","Gurupi","Ipueiras","Itacajá","Itaguatins","Itapiratins","Itaporã do Tocantins","Jaú do Tocantins","Juarina","Lagoa da Confusão","Lagoa do Tocantins","Lajeado","Lavandeira","Lizarda","Luzinópolis","Marianópolis do Tocantins","Mateiros","Maurilândia do Tocantins","Miracema do Tocantins","Miranorte","Monte do Carmo","Monte Santo do Tocantins","Muricilândia","Natividade","Nazaré","Nova Olinda","Nova Rosalândia","Novo Acordo","Novo Alegre","Novo Jardim","Oliveira de Fátima","Palmas","Palmeirante","Palmeiras do Tocantins","Palmeirópolis","Paraíso do Tocantins","Paranã","Pau D'Arco","Pedro Afonso","Peixe","Pequizeiro","Pindorama do Tocantins","Piraquê","Pium","Ponte Alta do Bom Jesus","Ponte Alta do Tocantins","Porto Alegre do Tocantins","Porto Nacional","Praia Norte","Presidente Kennedy","Pugmil","Recursolândia","Riachinho","Rio da Conceição","Rio dos Bois","Rio Sono","Sampaio","Sandolândia","Santa Fé do Araguaia","Santa Maria do Tocantins","Santa Rita do Tocantins","Santa Rosa do Tocantins","Santa Tereza do Tocantins","Santa Terezinha do Tocantins","São Bento do Tocantins","São Félix do Tocantins","São Miguel do Tocantins","São Salvador do Tocantins","São Sebastião do Tocantins","São Valério","Silvanópolis","Sítio Novo do Tocantins","Sucupira","Taguatinga","Taipas do Tocantins","Talismã","Tocantínia","Tocantinópolis","Tupirama","Tupiratins","Wanderlândia","Xambioá"]]);
-			
-//CÓDIGOS IBGE MUNICÍPIOS[3000+]			
-var cod_ibge_cidades = /*0.Aviso*/			([[""],
+var d_codibge = 	   /*0.Aviso*/			([[""],
 					   /*1.Acre*/			["1200013","1200054","1200104","1200138","1200179","1200203","1200252","1200302","1200328","1200336","1200344","1200351","1200385","1200807","1200393","1200401","1200427","1200435","1200500","1200450","1200609","1200708"],
 					   /*2.Alagoas*/		["2700102","2700201","2700300","2700409","2700508","2700607","2700706","2700805","2700904","2701001","2701100","2701209","2701308","2701357","2701407","2701506","2701605","2701704","2701803","2701902","2702009","2702108","2702207","2702306","2702355","2702405","2702504","2702553","2702603","2702702","2702801","2702900","2703007","2703106","2703205","2703304","2703403","2703502","2703601","2703700","2703759","2703809","2703908","2704005","2704104","2704203","2704302","2704401","2704906","2704500","2704609","2704708","2704807","2705002","2705101","2705200","2705309","2705408","2705507","2705606","2705705","2705804","2705903","2706000","2706109","2706208","2706307","2706406","2706422","2706448","2706505","2706604","2706703","2706802","2706901","2707008","2707107","2707206","2707305","2707404","2707503","2707602","2707701","2707800","2707909","2708006","2708105","2708204","2708303","2708402","2708501","2708600","2708709","2708808","2708907","2708956","2709004","2709103","2709152","2709202","2709301","2709400"],
 					   /*3.Amapá*/			["1600105","1600204","1600212","1600238","1600253","1600279","1600303","1600402","1600501","1600154","1600535","1600550","1600600","1600055","1600709","1600808"],
@@ -208,9 +481,7 @@ var cod_ibge_cidades = /*0.Aviso*/			([[""],
 					   /*25.São Paulo*/		["3500105","3500204","3500303","3500402","3500501","3500550","3500600","3500709","3500758","3500808","3500907","3501004","3501103","3501152","3501202","3501301","3501400","3501509","3501608","3501707","3501806","3501905","3502002","3502101","3502200","3502309","3502408","3502507","3502606","3502705","3502754","3502804","3502903","3503000","3503109","3503158","3503208","3503307","3503356","3503406","3503505","3503604","3503703","3503802","3503901","3503950","3504008","3504107","3504206","3504305","3504404","3504503","3504602","3504701","3504800","3504909","3505005","3505104","3505203","3505302","3505351","3505401","3505500","3505609","3505708","3505807","3505906","3506003","3506102","3506201","3506300","3506359","3506409","3506508","3506607","3506706","3506805","3506904","3507001","3507100","3507159","3507209","3507308","3507407","3507456","3507506","3507605","3507704","3507753","3507803","3507902","3508009","3508108","3508207","3508306","3508405","3508504","3508603","3508702","3508801","3508900","3509007","3509106","3509205","3509254","3509304","3509403","3509452","3509502","3509601","3509700","3509809","3509908","3509957","3510005","3510104","3510153","3510203","3510302","3510401","3510500","3510609","3510708","3510807","3510906","3511003","3511102","3511201","3511300","3511409","3511508","3511607","3511706","3557204","3511904","3512001","3512100","3512209","3512308","3512407","3512506","3512605","3512704","3512803","3512902","3513009","3513108","3513207","3513306","3513405","3513504","3513603","3513702","3513801","3513850","3513900","3514007","3514106","3514205","3514304","3514403","3514502","3514601","3514700","3514809","3514908","3514924","3514957","3515004","3515103","3515129","3515152","3515186","3515194","3557303","3515301","3515202","3515350","3515400","3515608","3515509","3515657","3515707","3515806","3515905","3516002","3516101","3516200","3516309","3516408","3516507","3516606","3516705","3516804","3516853","3516903","3517000","3517109","3517208","3517307","3517406","3517505","3517604","3517703","3517802","3517901","3518008","3518107","3518206","3518305","3518404","3518503","3518602","3518701","3518800","3518859","3518909","3519006","3519055","3519071","3519105","3519204","3519253","3519303","3519402","3519501","3519600","3519709","3519808","3519907","3520004","3520103","3520202","3520301","3520426","3520442","3520400","3520509","3520608","3520707","3520806","3520905","3521002","3521101","3521150","3521200","3521309","3521408","3521507","3521606","3521705","3521804","3521903","3522000","3522109","3522158","3522208","3522307","3522406","3522505","3522604","3522653","3522703","3522802","3522901","3523008","3523107","3523206","3523305","3523404","3523503","3523602","3523701","3523800","3523909","3524006","3524105","3524204","3524303","3524402","3524501","3524600","3524709","3524808","3524907","3525003","3525102","3525201","3525300","3525409","3525508","3525607","3525706","3525805","3525854","3525904","3526001","3526100","3526209","3526308","3526407","3526506","3526605","3526704","3526803","3526902","3527009","3527108","3527207","3527256","3527306","3527405","3527504","3527603","3527702","3527801","3527900","3528007","3528106","3528205","3528304","3528403","3528502","3528601","3528700","3528809","3528858","3528908","3529005","3529104","3529203","3529302","3529401","3529500","3529609","3529658","3529708","3529807","3530003","3529906","3530102","3530201","3530300","3530409","3530508","3530607","3530706","3530805","3530904","3531001","3531100","3531209","3531308","3531407","3531506","3531605","3531803","3531704","3531902","3532009","3532058","3532108","3532157","3532207","3532306","3532405","3532504","3532603","3532702","3532801","3532827","3532843","3532868","3532900","3533007","3533106","3533205","3533304","3533403","3533254","3533502","3533601","3533700","3533809","3533908","3534005","3534104","3534203","3534302","3534401","3534500","3534609","3534708","3534807","3534757","3534906","3535002","3535101","3535200","3535309","3535408","3535507","3535606","3535705","3535804","3535903","3536000","3536109","3536208","3536257","3536307","3536406","3536505","3536570","3536604","3536703","3536802","3536901","3537008","3537107","3537156","3537206","3537305","3537404","3537503","3537602","3537701","3537800","3537909","3538006","3538105","3538204","3538303","3538501","3538600","3538709","3538808","3538907","3539004","3539103","3539202","3539301","3539400","3539509","3539608","3539707","3539806","3539905","3540002","3540101","3540200","3540259","3540309","3540408","3540507","3540606","3540705","3540754","3540804","3540853","3540903","3541000","3541059","3541109","3541208","3541307","3541406","3541505","3541604","3541653","3541703","3541802","3541901","3542008","3542107","3542206","3542305","3542404","3542503","3542602","3542701","3542800","3542909","3543006","3543105","3543204","3543238","3543253","3543303","3543402","3543600","3543709","3543808","3543907","3544004","3544103","3544202","3543501","3544251","3544301","3544400","3544509","3544608","3544707","3544806","3544905","3545001","3545100","3545159","3545209","3545308","3545407","3545506","3545605","3545704","3545803","3546009","3546108","3546207","3546256","3546306","3546405","3546504","3546603","3546702","3546801","3546900","3547007","3547106","3547502","3547403","3547601","3547650","3547205","3547304","3547700","3547809","3547908","3548005","3548054","3548104","3548203","3548302","3548401","3548500","3548609","3548708","3548807","3548906","3549003","3549102","3549201","3549250","3549300","3549409","3549508","3549607","3549706","3549805","3549904","3549953","3550001","3550100","3550209","3550308","3550407","3550506","3550605","3550704","3550803","3550902","3551009","3551108","3551207","3551306","3551405","3551603","3551504","3551702","3551801","3551900","3552007","3552106","3552205","3552304","3552403","3552551","3552502","3552601","3552700","3552809","3552908","3553005","3553104","3553203","3553302","3553401","3553500","3553609","3553658","3553708","3553807","3553856","3553906","3553955","3554003","3554102","3554201","3554300","3554409","3554508","3554607","3554656","3554706","3554755","3554805","3554904","3554953","3555000","3555109","3555208","3555307","3555356","3555406","3555505","3555604","3555703","3555802","3555901","3556008","3556107","3556206","3556305","3556354","3556404","3556453","3556503","3556602","3556701","3556800","3556909","3556958","3557006","3557105","3557154"],
 					   /*26.Sergipe*/		["2800100","2800209","2800308","2800407","2800506","2800605","2800670","2800704","2801009","2801108","2801207","2801306","2801405","2801504","2801603","2801702","2801900","2802007","2802106","2802205","2802304","2802403","2802502","2802601","2802700","2802809","2802908","2803005","2803104","2803203","2803302","2803401","2803500","2803609","2803708","2803807","2803906","2804003","2804102","2804201","2804300","2804409","2804458","2804508","2804607","2804706","2804805","2804904","2805000","2805109","2805208","2805307","2805406","2805505","2805604","2805703","2805802","2805901","2806008","2806107","2806206","2806305","2806503","2806404","2806602","2806701","2806800","2806909","2807006","2807105","2807204","2807303","2807402","2807501","2807600"],
 					   /*27.Tocantins*/		["1700251","1700301","1700350","1700400","1700707","1701002","1701051","1701101","1701309","1701903","1702000","1702109","1702158","1702208","1702307","1702406","1702554","1702703","1702901","1703008","1703057","1703073","1703107","1703206","1703305","1703602","1703701","1703800","1703826","1703842","1703867","1703883","1703891","1703909","1704105","1705102","1704600","1705508","1716703","1705557","1705607","1706001","1706100","1706258","1706506","1707009","1707108","1707207","1707306","1707405","1707553","1707652","1707702","1708205","1708254","1708304","1709005","1709302","1709500","1709807","1710508","1710706","1710904","1711100","1711506","1711803","1711902","1711951","1712009","1712157","1712405","1712454","1712504","1712702","1712801","1713205","1713304","1713601","1713700","1713957","1714203","1714302","1714880","1715002","1715101","1715150","1715259","1715507","1721000","1715705","1713809","1715754","1716109","1716208","1716307","1716505","1716604","1716653","1717008","1717206","1717503","1717800","1717909","1718006","1718204","1718303","1718402","1718451","1718501","1718550","1718659","1718709","1718758","1718808","1718840","1718865","1718881","1718899","1718907","1719004","1720002","1720101","1720150","1720200","1720259","1720309","1720499","1720655","1720804","1720853","1720903","1720937","1720978","1721109","1721208","1721257","1721307","1722081","1722107"]]);
-					   
-//CÓDIGOS IATA
-var cod_iata =		   /*0.Aviso*/			([["", "", ""],
+var d_iata =		   /*0.Aviso*/			([["Selecione um Aeroporto", "", ""],
 					   /*1.Acre*/			[["Rio Branco", "Aeroporto Internacional de Rio Branco", "RBR"], ["Cruzeiro do Sul", "Aeroporto Internacional de Cruzeiro do Sul", "CZS"]],
 					   /*2.Alagoas*/		[["Maceió", "Aeroporto de Maceió", "MCZ"]],
 					   /*3.Amapá*/			[["Macapá", "Aeroporto Internacional de Macapá", "MCP"]],
