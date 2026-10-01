@@ -32,9 +32,33 @@ Implementação fácil e simples;
 ### 1. Inicie o script
 
 Chame o `src/localizaz.min.js` ou `src/localizaz.js` dentro do `<head>...</head>`:
+
+#### 1.1. Versões atuais
+
+Local (Branch atual):
 ```html
 <script type="text/javascript" src="src/localizaz.min.js"></script>
 ```
+
+**JSDelivr/CDN** (Master - **Faz update automático assim que uma nova versão é lançada**):
+```html
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/ArTDsL/LocaliZAZ.js@master/src/localizaz.min.js"></script>
+```
+
+**JSDelivr/CDN** (Versão atual **_3.0.0.0_**):
+```html
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/ArTDsL/LocaliZAZ.js@3.0.0.0/src/localizaz.min.js"></script>
+```
+
+#### 1.2. Versões anteriores
+
+**JSDelivr/CDN** (Versão anterior **_2.0.0.0_**):
+```html
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/ArTDsL/LocaliZAZ.js@2.0.0.0/src/localizaz.js"></script>
+```
+<small>A arquitetura da versão **2.0.0.0** é **diferente** da **3.0.0.0**, por favor verifique [aqui](https://github.com/ArTDsL/LocaliZAZ.js/tree/2.0.0.0).
+
+
 
 ### 2. Defina os campos:
 
